@@ -693,8 +693,8 @@ async function zuperFetch(endpoint, params){
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body)
     });
-    // 404 means proxy function isn't deployed → fall through to direct fetch
-    if(r.status === 404){
+    // 404 or 500 means proxy isn't working → fall through to direct fetch
+    if(r.status === 404 || r.status === 500){
       throw new Error('PROXY_NOT_FOUND');
     }
     if(!r.ok) throw new Error(`Proxy error ${r.status}`);
