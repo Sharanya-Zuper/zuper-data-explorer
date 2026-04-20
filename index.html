@@ -673,22 +673,32 @@ async function onParamChange(modId, paramId, value){
 }
 
 /* ── Proxy call ── all Zuper API requests go through here ───────
-   Calls Zuper API directly (CORS is supported by Zuper).
-   No proxy needed.
+   On Netlify: routes via /.netlify/functions/proxy (fixes CORS).
+   Fallback: if proxy isn't deployed yet (local dev / 404), hits
    Zuper directly — works for modules that allow browser CORS.
 ─────────────────────────────────────────────────────────────── */
 async function zuperFetch(endpoint, params){
-  const ep = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-  const base = auth.baseUrl.endsWith('/') ? auth.baseUrl : auth.baseUrl + '/';
   const qs = (params && Object.keys(params).length)
     ? '?' + Object.entries(params)
         .filter(([,v]) => v !== undefined && v !== null && v !== '')
         .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&')
     : '';
-  const r = await fetch(`${base}${ep}${qs}`, {headers: {'x-api-key': auth.apiKey}});
-  if(!r.ok) throw new Error(`Zuper ${r.status} from ${endpoint}`);
-  return r.json();
+
+  const body = {endpoint, apiKey: auth.apiKey, region: auth.baseUrl, params: params||{}};
+  const r = await fetch('/.netlify/functions/proxy', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){
+    let errMsg = 'Proxy error ' + r.status;
+    try { const j = await r.json(); errMsg = j.error || errMsg; } catch{}
+    throw new Error(errMsg);
+  }
+  const wrapper = await r.json();
+  if(!wrapper.ok) throw new Error('Zuper API error ' + wrapper.status + ': ' + (wrapper.data?.message || wrapper.data?.error || ''));
+  return wrapper.data;
 }
 
 /* ── Extract array from any Zuper response shape ────────────────
@@ -722,7 +732,7 @@ function extractArr(d){
   return [];
 }
 
-/* ── Fetch one page ── */
+/* ── Fetch one page via proxy (or direct fallback) ── */
 async function fetchPage(ep, page, pageSize){
   const params = {page, rows: pageSize};
   try {
@@ -775,7 +785,9 @@ async function doFetch(){
     records = extractArr(raw);
   }catch(e){
     const msg=e.message||'';
-    const hint=msg;
+    const hint=msg.includes('Proxy error')
+      ? msg
+      : msg;
     document.getElementById('tc').innerHTML=`<div class="es">Error: ${hint}</div>`;
     document.getElementById('dmeta').textContent='Error';
     setBanners([{type:'d',msg:`${m.name}: ${hint}`}]);
@@ -954,7 +966,7 @@ function setPreview(n){
 }
 
 /* ── Paginated full fetch for exports ──────────────────────────
-   Pages through all records. Stops when a page
+   Pages through all records via the proxy. Stops when a page
    returns fewer than PAGE_SIZE records or returns empty/error.
 ────────────────────────────────────────────────────────────── */
 async function fetchAllPages(m){
