@@ -673,46 +673,22 @@ async function onParamChange(modId, paramId, value){
 }
 
 /* ── Proxy call ── all Zuper API requests go through here ───────
-   On Netlify: routes via /.netlify/functions/proxy (fixes CORS).
-   Fallback: if proxy isn't deployed yet (local dev / 404), hits
+   Calls Zuper API directly (CORS is supported by Zuper).
+   No proxy needed.
    Zuper directly — works for modules that allow browser CORS.
 ─────────────────────────────────────────────────────────────── */
 async function zuperFetch(endpoint, params){
-  const qs = params
+  const ep = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  const base = auth.baseUrl.endsWith('/') ? auth.baseUrl : auth.baseUrl + '/';
+  const qs = (params && Object.keys(params).length)
     ? '?' + Object.entries(params)
         .filter(([,v]) => v !== undefined && v !== null && v !== '')
         .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&')
     : '';
-
-  // Try proxy first
-  try {
-    const body = {endpoint, apiKey: auth.apiKey, region: auth.baseUrl, params: params||{}};
-    const r = await fetch('/.netlify/functions/proxy', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body)
-    });
-    // 404 or 500 means proxy isn't working → fall through to direct fetch
-    if(r.status === 404 || r.status === 500){
-      throw new Error('PROXY_NOT_FOUND');
-    }
-    if(!r.ok) throw new Error(`Proxy error ${r.status}`);
-    const wrapper = await r.json();
-    // wrapper = { status, ok, data: <raw Zuper response> }
-    if(!wrapper.ok) throw new Error(`Zuper API ${wrapper.status}`);
-    return wrapper.data; // raw Zuper response object
-  } catch(proxyErr) {
-    if(proxyErr.message === 'PROXY_NOT_FOUND' || proxyErr.message.includes('Failed to fetch') || proxyErr.message.includes('NetworkError')){
-      // Direct fetch fallback (works for CORS-enabled endpoints)
-      const ep = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-      const base = auth.baseUrl.endsWith('/') ? auth.baseUrl : auth.baseUrl + '/';
-      const r2 = await fetch(`${base}${ep}${qs}`, {headers: {'x-api-key': auth.apiKey}});
-      if(!r2.ok) throw new Error(`Zuper ${r2.status} from ${endpoint}`);
-      return r2.json(); // raw Zuper response
-    }
-    throw proxyErr;
-  }
+  const r = await fetch(`${base}${ep}${qs}`, {headers: {'x-api-key': auth.apiKey}});
+  if(!r.ok) throw new Error(`Zuper ${r.status} from ${endpoint}`);
+  return r.json();
 }
 
 /* ── Extract array from any Zuper response shape ────────────────
@@ -746,7 +722,7 @@ function extractArr(d){
   return [];
 }
 
-/* ── Fetch one page via proxy (or direct fallback) ── */
+/* ── Fetch one page ── */
 async function fetchPage(ep, page, pageSize){
   const params = {page, rows: pageSize};
   try {
@@ -799,9 +775,7 @@ async function doFetch(){
     records = extractArr(raw);
   }catch(e){
     const msg=e.message||'';
-    const hint=msg.includes('Proxy error')
-      ? 'Proxy function error — make sure netlify/functions/proxy.js is deployed alongside index.html.'
-      : msg;
+    const hint=msg;
     document.getElementById('tc').innerHTML=`<div class="es">Error: ${hint}</div>`;
     document.getElementById('dmeta').textContent='Error';
     setBanners([{type:'d',msg:`${m.name}: ${hint}`}]);
@@ -980,7 +954,7 @@ function setPreview(n){
 }
 
 /* ── Paginated full fetch for exports ──────────────────────────
-   Pages through all records via the proxy. Stops when a page
+   Pages through all records. Stops when a page
    returns fewer than PAGE_SIZE records or returns empty/error.
 ────────────────────────────────────────────────────────────── */
 async function fetchAllPages(m){
