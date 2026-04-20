@@ -17,7 +17,12 @@ exports.handler = async (event) => {
       },
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      data = await response.text(); // fallback
+    }
 
     return {
       statusCode: 200,
