@@ -1291,7 +1291,7 @@
       {
         id: 'estimates', name: 'Quotes / Estimates', cat: 'finance',
         desc: 'Pre-job pricing & approvals', ic: '#FAEEDA', ico: '#854F0B',
-        ep: '/estimates', detailEp: '/estimate/{uid}', uidField: 'estimate_uid',
+        ep: '/estimates', detailEp: '/estimates/{uid}', uidField: 'estimate_uid',
         svg: '<path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['estimate_uid', 'estimate_number', 'customer_name', 'total_amount', 'status', 'valid_until', 'created_at']
       },
@@ -1673,22 +1673,34 @@
         // Fetch the source module data
         const srcMod = MODS.find(x => x.id === pd.loadsFrom);
         let records = [];
+
         if (srcMod) {
-          const ep = srcMod.ep.replace(/^\//, '');
-          const params = srcMod.staticParams || {};
-          // If loadsFrom depends on a parent param, add it to the path
+          const ep = srcMod.ep; 
+
+          const params =
+            typeof srcMod.params === 'function'
+              ? srcMod.params(activeParams)
+              : (srcMod.params || srcMod.staticParams || {});
+
           if (pd.dependsOn && activeParams[pd.dependsOn]) {
             const parentVal = activeParams[pd.dependsOn];
+
             const builtEp = srcMod.buildEp
               ? srcMod.buildEp({ [pd.dependsOn]: parentVal })
-              : ep;            
-            const raw = await zuperFetch(builtEp.replace(/^\//, ''), {});
+              : ep;
+
+            const raw = await zuperFetch(
+              builtEp,   
+              params     
+            );
+
             records = extractArr(raw);
+
           } else {
-            const raw = await zuperFetch(ep, params);
+            const raw = await zuperFetch(ep, params); 
             records = extractArr(raw);
           }
-        }
+}
 
         if (!records.length) {
           sel.innerHTML = '<option value="">No options found</option>';
@@ -1740,30 +1752,30 @@
     //   }
     // }
     async function onParamChange(modId, paramId, value) {
-  activeParams[paramId] = value;
+    activeParams[paramId] = value;
 
-  const m = MODS.find(x => x.id === modId);
+    const m = MODS.find(x => x.id === modId);
 
   // existing logic
-  for (const pd of m.paramDefs) {
-    if (pd.dependsOn === paramId) {
-      const sel = document.getElementById(`param-${pd.id}`);
-      if (value) {
-        await loadParamOptions(m, pd);
-      } else {
-        if (sel) {
-          sel.innerHTML = '<option value="">— pick above first —</option>';
-          sel.disabled = true;
+      for (const pd of m.paramDefs) {
+        if (pd.dependsOn === paramId) {
+          const sel = document.getElementById(`param-${pd.id}`);
+          if (value) {
+            await loadParamOptions(m, pd);
+          } else {
+            if (sel) {
+              sel.innerHTML = '<option value="">— pick above first —</option>';
+              sel.disabled = true;
+            }
+            delete activeParams[pd.id];
+          }
         }
-        delete activeParams[pd.id];
       }
-    }
-  }
 
   // 👇 NEW: enable fetch only if all params selected
-  const allFilled = m.paramDefs.every(p => activeParams[p.id]);
-  document.getElementById('fetch-btn').disabled = !allFilled;
-}
+      const allFilled = m.paramDefs.every(p => activeParams[p.id]);
+      document.getElementById('fetch-btn').disabled = !allFilled;
+    }
 
     /* ── Proxy call ── all Zuper API requests go through here ───────
        On Netlify: routes via /.netlify/functions/proxy (fixes CORS).
@@ -1781,7 +1793,10 @@
       const body = { endpoint, apiKey: auth.apiKey, region: auth.baseUrl, params: params || {} };
       const r = await fetch('/.netlify/functions/proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'  
+        },
         body: JSON.stringify(body)
       });
       if (!r.ok) {
@@ -1802,29 +1817,35 @@
       if (!d) return [];
       if (Array.isArray(d)) return d;
 
-      // Unwrap one level: { type, data: <actual payload> }
       const payload = (d.data !== undefined) ? d.data : d;
 
       if (Array.isArray(payload)) return payload;
 
-      // Paginated shape: { rows: [...] }
+      if (payload?.products && Array.isArray(payload.products)) {
+        return payload.products;
+      }
+      if (payload?.data && payload.data.data && Array.isArray(payload.data.data)) {
+        return payload.data.data;
+      }
+
       if (payload?.rows && Array.isArray(payload.rows)) return payload.rows;
 
-      // Named-key shape: { jobs: [...] } etc.
-      const namedKeys = ['jobs', 'customers', 'users', 'products', 'assets', 'invoices',
-        'estimates', 'teams', 'timesheets', 'properties', 'organizations', 'service_contracts',
-        'requests', 'recurring_jobs', 'checklists', 'forms', 'jobtypes', 'jobstatuses',
-        'customfields', 'workflows', 'skills', 'territories', 'data'];
+      const namedKeys = [
+        'jobs','customers','users','products','assets','invoices',
+        'estimates','teams','timesheets','properties','organizations',
+        'service_contracts','requests','recurring_jobs','checklists',
+        'forms','jobtypes','jobstatuses','customfields','workflows',
+        'skills','territories','data'
+      ];
+
       for (const k of namedKeys) {
         if (payload?.[k] && Array.isArray(payload[k])) return payload[k];
       }
 
-      // Double-wrapped: { data: { data: [...] } }
       if (payload?.data && Array.isArray(payload.data)) return payload.data;
 
       return [];
-    }
-
+  }
     /* ── Fetch one page via proxy (or direct fallback) ── */
     async function fetchPage(ep, page, pageSize) {
       const params = { page, rows: pageSize };
@@ -2105,15 +2126,10 @@
 
       // Resolve endpoint and base params for this module
       const resolvedEp = (m.buildEp ? m.buildEp(activeParams) : m.ep).replace(/^\//, '');
-      let extraParams = {};
-
-      if (typeof m.params === 'function') {
-        extraParams = m.params(activeParams);
-      } else if (m.params) {
-        extraParams = m.params;
-      } else if (m.staticParams) {
-        extraParams = m.staticParams;
-      }
+      const extraParams =
+      typeof m.params === 'function'
+        ? m.params(activeParams)
+        : (m.params || m.staticParams || {});
       while (true) {
         lbl.textContent = `Fetching page ${page + 1}… (${all.length} records so far)`;
         let records = [];
