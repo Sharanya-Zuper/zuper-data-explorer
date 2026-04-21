@@ -1240,7 +1240,7 @@
       {
         id: 'requests', name: 'Requests', cat: 'ops',
         desc: 'Customer service requests', ic: '#FAECE7', ico: '#993C1D',
-        ep: '/requests', detailEp: '/requests/{uid}', uidField: 'request_uid',
+        ep: '/requests', detailEp: '/request/{uid}', uidField: 'request_uid',
         svg: '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['request_uid', 'title', 'status', 'customer_name', 'created_at', 'description']
       },
@@ -1258,7 +1258,7 @@
       {
         id: 'organizations', name: 'Organizations', cat: 'people',
         desc: 'Company / org accounts', ic: '#E1F5EE', ico: '#0F6E56',
-        ep: '/organizations', detailEp: '/organizations/{uid}', uidField: 'org_uid',
+        ep: '/organizations', detailEp: '/organization/{uid}', uidField: 'org_uid',
         svg: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/><polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['org_uid', 'org_name', 'email', 'phone_number', 'billing_address', 'is_active', 'created_at']
       },
@@ -1266,7 +1266,7 @@
       {
         id: 'users', name: 'Users / Technicians', cat: 'people',
         desc: 'Field staff & back-office users', ic: '#EEEDFE', ico: '#534AB7',
-        ep: '/users', detailEp: '/users/{uid}', uidField: 'user_uid',
+        ep: '/users', detailEp: '/user/{uid}', uidField: 'user_uid',
         svg: '<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['user_uid', 'first_name', 'last_name', 'email', 'mobile_number', 'phone_number', 'role', 'is_active', 'created_at']
       },
@@ -1283,7 +1283,7 @@
       {
         id: 'invoices', name: 'Invoices', cat: 'finance',
         desc: 'Billing & payment records', ic: '#EAF3DE', ico: '#1a7a30',
-        ep: '/invoices', detailEp: '/invoices/{uid}', uidField: 'invoice_uid',
+        ep: '/invoices', detailEp: '/invoice/{uid}', uidField: 'invoice_uid',
         svg: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['invoice_uid', 'invoice_number', 'customer_name', 'sub_total', 'tax_amount', 'total_amount', 'payment_status', 'due_date', 'created_at']
       },
@@ -1291,7 +1291,7 @@
       {
         id: 'estimates', name: 'Quotes / Estimates', cat: 'finance',
         desc: 'Pre-job pricing & approvals', ic: '#FAEEDA', ico: '#854F0B',
-        ep: '/estimates', detailEp: '/estimates/{uid}', uidField: 'estimate_uid',
+        ep: '/estimates', detailEp: '/estimate/{uid}', uidField: 'estimate_uid',
         svg: '<path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['estimate_uid', 'estimate_number', 'customer_name', 'total_amount', 'status', 'valid_until', 'created_at']
       },
@@ -1299,24 +1299,39 @@
       {
         id: 'service_contracts', name: 'Service contracts', cat: 'finance',
         desc: 'SLA & maintenance agreements', ic: '#E1F5EE', ico: '#0F6E56',
-        ep: '/service_contracts', detailEp: '/service_contracts/{uid}', uidField: 'contract_uid',
+        ep: '/service_contracts', detailEp: '/service_contract/{uid}', uidField: 'contract_uid',
         svg: '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['contract_uid', 'contract_name', 'customer_name', 'start_date', 'end_date', 'contract_value', 'status', 'created_at']
       },
 
       /* ── Inventory ── */
       {
-        id: 'products', name: 'Parts & Products', cat: 'inventory',
-        desc: 'Parts catalog, services & pricing', ic: '#FAECE7', ico: '#993C1D',
-        ep: '/products', detailEp: '/products/{uid}', uidField: 'product_uid',
-        svg: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-        priority: ['product_uid', 'product_name', 'part_number', 'category', 'unit_price', 'selling_price', 'cost_price', 'uom', 'is_active']
-      },
+          id: 'products',
+          name: 'Parts & Products',
+          cat: 'inventory',
+
+          ep: '/products',                 
+          detailEp: '/product/{uid}',      
+
+          uidField: 'product_uid',
+
+          priority: [
+            'product_uid',
+            'product_name',
+            'part_number',
+            'category',
+            'unit_price',
+            'selling_price',
+            'cost_price',
+            'uom',
+            'is_active'
+          ]
+    },
 
       {
         id: 'assets', name: 'Assets', cat: 'inventory',
         desc: 'Equipment & asset tracking', ic: '#FCEBEB', ico: '#A32D2D',
-        ep: '/assets', detailEp: '/assets/{uid}', uidField: 'asset_uid',
+        ep: '/assets', detailEp: '/asset/{uid}', uidField: 'asset_uid',
         svg: '<rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['asset_uid', 'asset_name', 'asset_type', 'serial_number', 'model', 'customer_name', 'status', 'installation_date', 'warranty_expiry_date']
       },
@@ -1324,7 +1339,7 @@
       {
         id: 'properties', name: 'Properties', cat: 'inventory',
         desc: 'Service locations & properties', ic: '#FAEEDA', ico: '#854F0B',
-        ep: '/properties', detailEp: '/properties/{uid}', uidField: 'property_uid',
+        ep: '/properties', detailEp: '/property/{uid}', uidField: 'property_uid',
         svg: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
         priority: ['property_uid', 'property_name', 'address', 'customer_name', 'is_active', 'created_at']
       },
@@ -1684,13 +1699,20 @@
         // Cache for dependent params
         paramChoices[pd.id] = records;
 
-        // Build options using labelField (supports || fallback)
-        sel.innerHTML = '<option value="">— Select —</option>' + records.map(r => {
-          const val = r[pd.valueField] || r.uid || '';
-          const labelFields = pd.labelField.split('||');
-          const lbl = labelFields.map(f => r[f.trim()]).find(v => v) || val;
-          return `<option value="${val}">${lbl}</option>`;
-        }).join('');
+        sel.innerHTML =
+          '<option value="">— Select —</option>' +
+          records.map(r => {
+            const val = r[pd.valueField] || r.uid || '';
+
+            const labelFields = (pd.labelField || '').split('||');
+
+            const lbl = labelFields
+              .map(f => r[f.trim()])
+              .find(v => v && String(v).trim() !== '') || val;
+
+            return `<option value="${esc(val)}">${esc(lbl)}</option>`;
+          }).join('');
+
         sel.disabled = false;
 
       } catch (e) {
