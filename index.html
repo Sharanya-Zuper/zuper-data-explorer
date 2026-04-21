@@ -1,1088 +1,2198 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Zuper Data Explorer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
-:root{
-  --navy:#0D1B2A;--nb:rgba(255,255,255,0.08);
-  --orange:#e8622a;--od:#c84f1e;--ol:rgba(232,98,42,0.12);--ol2:rgba(232,98,42,0.05);
-  --bg:#fff;--bg2:#f6f6f4;--bg3:#eeedea;
-  --bd:rgba(0,0,0,0.08);--bd2:rgba(0,0,0,0.14);
-  --t:#181816;--t2:#6b6b67;--t3:#a09f9b;
-  --s-bg:#f0fdf8;--s-bd:rgba(16,185,129,0.25);--s-t:#047857;
-  --d-bg:#fff1f1;--d-bd:rgba(239,68,68,0.25);--d-t:#b91c1c;
-  --w-bg:#fffbeb;--w-bd:rgba(245,158,11,0.3);--w-t:#92400e;
-  --i-bg:#eff6ff;--i-bd:rgba(59,130,246,0.25);--i-t:#1d4ed8;
-  --r:8px;--rl:12px;--hh:56px;
-  --font:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
-}
-@media(prefers-color-scheme:dark){:root{
-  --bg:#121212;--bg2:#1a1a1a;--bg3:#222;
-  --bd:rgba(255,255,255,0.08);--bd2:rgba(255,255,255,0.13);
-  --t:#e6e6e2;--t2:#888884;--t3:#555550;
-  --s-bg:rgba(4,120,87,0.15);--s-bd:rgba(16,185,129,0.2);--s-t:#34d399;
-  --d-bg:rgba(185,28,28,0.15);--d-bd:rgba(239,68,68,0.2);--d-t:#f87171;
-  --w-bg:rgba(146,64,14,0.15);--w-bd:rgba(245,158,11,0.2);--w-t:#fbbf24;
-  --i-bg:rgba(29,78,216,0.15);--i-bd:rgba(59,130,246,0.2);--i-t:#93c5fd;
-}}
-*{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
-#hdr{position:fixed;top:0;left:0;right:0;height:var(--hh);background:var(--navy);display:flex;align-items:center;padding:0 1.5rem;gap:1.5rem;z-index:100;border-bottom:.5px solid var(--nb);}
-.h-logo{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.h-mark{width:28px;height:28px;border-radius:7px;background:var(--orange);display:flex;align-items:center;justify-content:center;}
-.h-mark svg{width:15px;height:15px;}
-.h-name{font-size:14px;font-weight:600;color:#fff;letter-spacing:-.01em;}
-.h-sep{width:.5px;height:18px;background:var(--nb);margin:0 2px;}
-.h-sub{font-size:11px;color:rgba(255,255,255,0.3);}
-.steps{display:flex;align-items:center;gap:2px;margin:0 auto;}
-.si{display:flex;align-items:center;gap:7px;padding:6px 13px;border-radius:var(--r);cursor:pointer;user-select:none;transition:background .15s;}
-.si:hover:not(.active):not(.locked){background:rgba(255,255,255,0.05);}
-.si.locked{opacity:.3;cursor:not-allowed;pointer-events:none;}
-.sn{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);transition:all .2s;}
-.si.active .sn{background:var(--orange);color:#fff;}
-.si.done .sn{background:rgba(232,98,42,0.28);color:var(--orange);}
-.sl{font-size:12px;font-weight:500;color:rgba(255,255,255,0.3);}
-.si.active .sl{color:#fff;}
-.si.done .sl{color:rgba(255,255,255,0.5);}
-.sarr{color:rgba(255,255,255,0.15);font-size:12px;margin:0 1px;}
-.hconn{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:500;flex-shrink:0;}
-.hconn.off{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.25);}
-.hconn.on{background:rgba(16,185,129,0.15);color:#34d399;border:.5px solid rgba(16,185,129,0.2);}
-.hdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
-.hdis{font-size:10px;color:rgba(255,255,255,0.2);cursor:pointer;margin-left:5px;padding:2px 7px;border-radius:20px;border:.5px solid rgba(255,255,255,0.08);transition:all .15s;}
-.hdis:hover{color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.2);}
-#body{margin-top:var(--hh);display:flex;min-height:calc(100dvh - var(--hh));}
-#sb{width:215px;flex-shrink:0;background:var(--bg2);border-right:.5px solid var(--bd);padding:1.25rem 1rem;overflow-y:auto;}
-#main{flex:1;padding:1.75rem 2rem;overflow-y:auto;max-height:calc(100dvh - var(--hh));}
-.sb-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--t3);text-transform:uppercase;margin-bottom:.6rem;}
-.fc{padding:9px 10px;border-radius:var(--r);border:.5px solid var(--bd);margin-bottom:5px;background:var(--bg);cursor:pointer;transition:all .15s;}
-.fc:hover{border-color:var(--orange);background:var(--ol2);}
-.ft{font-size:11px;font-weight:600;color:var(--t);margin-bottom:2px;}
-.fd{font-size:10px;color:var(--t2);line-height:1.4;}
-.ftag{font-size:9px;padding:1px 6px;border-radius:20px;background:var(--ol);color:var(--od);font-weight:700;display:inline-block;margin-top:4px;}
-.panel{display:none;animation:fi .2s ease;}
-.panel.active{display:block;}
-@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.pt{font-size:20px;font-weight:600;color:var(--t);letter-spacing:-.02em;margin-bottom:4px;}
-.ps{font-size:13px;color:var(--t2);margin-bottom:1.5rem;}
-.card{background:var(--bg);border:.5px solid var(--bd);border-radius:var(--rl);padding:1.5rem;}
-.csm{max-width:440px;}
-.fl{display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--t2);margin-bottom:5px;}
-.fw{position:relative;margin-bottom:1rem;}
-.zi{width:100%;padding:10px 38px 10px 12px;font-size:13px;font-family:var(--mono);background:var(--bg2);border:.5px solid var(--bd2);border-radius:var(--r);color:var(--t);outline:none;transition:border-color .15s,box-shadow .15s;}
-.zi:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,98,42,0.1);}
-.zs{width:100%;padding:10px 12px;font-size:13px;font-family:var(--font);background:var(--bg2);border:.5px solid var(--bd2);border-radius:var(--r);color:var(--t);outline:none;margin-bottom:1rem;cursor:pointer;}
-.zs:focus{border-color:var(--orange);}
-.tb{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--t3);padding:3px;display:flex;align-items:center;}
-.bp{width:100%;padding:11px;background:var(--orange);color:#fff;font-size:13px;font-weight:600;border:none;border-radius:var(--r);cursor:pointer;font-family:var(--font);transition:background .15s;}
-.bp:hover{background:var(--od);}
-.bp:disabled{opacity:.5;cursor:not-allowed;}
-.bn{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:var(--r);font-size:12px;margin-bottom:.75rem;}
-.bn svg{width:13px;height:13px;flex-shrink:0;}
-.bn-s{background:var(--s-bg);border:.5px solid var(--s-bd);color:var(--s-t);}
-.bn-d{background:var(--d-bg);border:.5px solid var(--d-bd);color:var(--d-t);margin-top:.75rem;margin-bottom:0;}
-.bn-w{background:var(--w-bg);border:.5px solid var(--w-bd);color:var(--w-t);}
-.bn-i{background:var(--i-bg);border:.5px solid var(--i-bd);color:var(--i-t);}
-.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px;}
-.spin-d{border-color:var(--bd2);border-top-color:var(--orange);}
-@keyframes spin{to{transform:rotate(360deg)}}
-.mfs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
-.mf{font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;border:.5px solid var(--bd);background:var(--bg);color:var(--t2);transition:all .15s;font-weight:500;}
-.mf.on{background:var(--ol);border-color:var(--orange);color:var(--od);font-weight:600;}
-.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:8px;}
-.mc{background:var(--bg);border:.5px solid var(--bd);border-radius:var(--rl);padding:13px;cursor:pointer;transition:all .15s;position:relative;}
-.mc:hover{border-color:var(--bd2);background:var(--bg2);}
-.mc.active{border-color:var(--orange);background:var(--ol2);}
-.mc.active::after{content:'';position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--orange);}
-.mi{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:9px;}
-.mi svg{width:14px;height:14px;}
-.mn{font-size:12px;font-weight:600;color:var(--t);margin-bottom:3px;}
-.md{font-size:10px;color:var(--t2);line-height:1.4;}
-.ep-tag{font-size:9px;padding:1px 5px;border-radius:4px;background:var(--bg3);color:var(--t3);font-family:var(--mono);margin-top:4px;display:inline-block;}
-.frow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 15px;background:var(--bg2);border:.5px solid var(--bd);border-radius:var(--rl);margin-top:1rem;}
-.frow-t{font-size:12px;color:var(--t2);}
-.frow-t strong{color:var(--t);font-weight:600;}
-.bf{padding:8px 18px;font-size:12px;font-weight:600;background:var(--orange);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-family:var(--font);}
-.bf:hover{background:var(--od);}
-.dtb{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:.875rem;}
-.dm{font-size:13px;color:var(--t2);}
-.dm strong{color:var(--t);font-weight:600;}
-.dm em{font-style:normal;font-size:11px;color:var(--t3);}
-.ebs{display:flex;gap:6px;flex-wrap:wrap;}
-.eb{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;font-size:11px;font-weight:600;border-radius:var(--r);cursor:pointer;border:.5px solid var(--bd2);background:var(--bg2);color:var(--t);transition:background .15s;font-family:var(--font);}
-.eb:hover{background:var(--bg3);}
-.eb svg{width:12px;height:12px;flex-shrink:0;}
-.eb.pr{background:var(--orange);color:#fff;border-color:transparent;}
-.eb.pr:hover{background:var(--od);}
-.eb.enrich-btn{background:var(--i-bg);color:var(--i-t);border-color:var(--i-bd);}
-.eb.enrich-btn:hover{background:#dbeafe;}
-.slbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin:.875rem 0 .5rem;}
-.cts{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.875rem;}
-.ct{font-size:10px;padding:3px 9px;border-radius:20px;cursor:pointer;border:.5px solid var(--bd);background:var(--bg2);color:var(--t2);user-select:none;transition:all .15s;font-weight:500;}
-.ct.on{background:var(--ol);border-color:var(--orange);color:var(--od);font-weight:600;}
-.raw-toggle{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--t3);cursor:pointer;margin-bottom:.5rem;}
-.raw-toggle:hover{color:var(--t2);}
-.raw-toggle svg{width:12px;height:12px;}
-.raw-box{background:var(--bg2);border:.5px solid var(--bd);border-radius:var(--r);padding:12px;font-family:var(--mono);font-size:11px;color:var(--t2);line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow-y:auto;margin-bottom:.875rem;display:none;}
-.tw{overflow-x:auto;border:.5px solid var(--bd);border-radius:var(--rl);}
-table{width:100%;border-collapse:collapse;font-size:12px;}
-th{background:var(--bg2);padding:9px 13px;text-align:left;font-weight:700;font-size:10px;letter-spacing:.05em;color:var(--t2);border-bottom:.5px solid var(--bd);white-space:nowrap;text-transform:uppercase;}
-td{padding:9px 13px;border-bottom:.5px solid var(--bd);color:var(--t);white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:var(--bg2);}
-.p{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;}
-.po{background:#ecfdf5;color:#065f46;}
-.pp{background:var(--ol);color:var(--od);}
-.pc{background:var(--bg3);color:var(--t2);}
-.pd{background:var(--bg2);color:var(--t2);}
-.null-val{color:var(--t3);}
-.tfoot{text-align:center;padding:9px;font-size:11px;color:var(--t3);border-top:.5px solid var(--bd);}
-.es{text-align:center;padding:3rem;color:var(--t3);font-size:13px;}
-.bk{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--t2);cursor:pointer;margin-bottom:1rem;padding:4px 0;}
-.bk:hover{color:var(--t);}
-.bk svg{width:13px;height:13px;}
-.prog-bar{height:3px;background:var(--bd);border-radius:2px;margin-bottom:.5rem;overflow:hidden;}
-.prog-fill{height:100%;background:var(--orange);border-radius:2px;transition:width .3s;}
-.size-btn{padding:2px 8px;font-size:11px;font-weight:500;border-radius:5px;cursor:pointer;border:.5px solid var(--bd2);background:var(--bg2);color:var(--t2);font-family:var(--font);transition:all .15s;}
-.size-btn:hover{border-color:var(--orange);color:var(--od);}
-.size-btn.active{background:var(--ol);border-color:var(--orange);color:var(--od);font-weight:600;}
-.param-row{display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:center;margin-bottom:.625rem;}
-.param-label{font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.03em;}
-.param-select{font-size:12px;font-family:var(--font);background:var(--bg);border:.5px solid var(--bd2);border-radius:var(--r);color:var(--t);padding:7px 10px;outline:none;cursor:pointer;width:100%;}
-.param-select:focus{border-color:var(--orange);}
-.param-hint{font-size:10px;color:var(--t3);margin-top:-.25rem;margin-bottom:.375rem;grid-column:2;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zuper Data Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --navy: #0D1B2A;
+      --nb: rgba(255, 255, 255, 0.08);
+      --orange: #e8622a;
+      --od: #c84f1e;
+      --ol: rgba(232, 98, 42, 0.12);
+      --ol2: rgba(232, 98, 42, 0.05);
+      --bg: #fff;
+      --bg2: #f6f6f4;
+      --bg3: #eeedea;
+      --bd: rgba(0, 0, 0, 0.08);
+      --bd2: rgba(0, 0, 0, 0.14);
+      --t: #181816;
+      --t2: #6b6b67;
+      --t3: #a09f9b;
+      --s-bg: #f0fdf8;
+      --s-bd: rgba(16, 185, 129, 0.25);
+      --s-t: #047857;
+      --d-bg: #fff1f1;
+      --d-bd: rgba(239, 68, 68, 0.25);
+      --d-t: #b91c1c;
+      --w-bg: #fffbeb;
+      --w-bd: rgba(245, 158, 11, 0.3);
+      --w-t: #92400e;
+      --i-bg: #eff6ff;
+      --i-bd: rgba(59, 130, 246, 0.25);
+      --i-t: #1d4ed8;
+      --r: 8px;
+      --rl: 12px;
+      --hh: 56px;
+      --font: 'DM Sans', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    @media(prefers-color-scheme:dark) {
+      :root {
+        --bg: #121212;
+        --bg2: #1a1a1a;
+        --bg3: #222;
+        --bd: rgba(255, 255, 255, 0.08);
+        --bd2: rgba(255, 255, 255, 0.13);
+        --t: #e6e6e2;
+        --t2: #888884;
+        --t3: #555550;
+        --s-bg: rgba(4, 120, 87, 0.15);
+        --s-bd: rgba(16, 185, 129, 0.2);
+        --s-t: #34d399;
+        --d-bg: rgba(185, 28, 28, 0.15);
+        --d-bd: rgba(239, 68, 68, 0.2);
+        --d-t: #f87171;
+        --w-bg: rgba(146, 64, 14, 0.15);
+        --w-bd: rgba(245, 158, 11, 0.2);
+        --w-t: #fbbf24;
+        --i-bg: rgba(29, 78, 216, 0.15);
+        --i-bd: rgba(59, 130, 246, 0.2);
+        --i-t: #93c5fd;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--t);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #hdr {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--hh);
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      gap: 1.5rem;
+      z-index: 100;
+      border-bottom: .5px solid var(--nb);
+    }
+
+    .h-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .h-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .h-mark svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .h-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -.01em;
+    }
+
+    .h-sep {
+      width: .5px;
+      height: 18px;
+      background: var(--nb);
+      margin: 0 2px;
+    }
+
+    .h-sub {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .steps {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin: 0 auto;
+    }
+
+    .si {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 13px;
+      border-radius: var(--r);
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+
+    .si:hover:not(.active):not(.locked) {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .si.locked {
+      opacity: .3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .sn {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.35);
+      transition: all .2s;
+    }
+
+    .si.active .sn {
+      background: var(--orange);
+      color: #fff;
+    }
+
+    .si.done .sn {
+      background: rgba(232, 98, 42, 0.28);
+      color: var(--orange);
+    }
+
+    .sl {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .si.active .sl {
+      color: #fff;
+    }
+
+    .si.done .sl {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .sarr {
+      color: rgba(255, 255, 255, 0.15);
+      font-size: 12px;
+      margin: 0 1px;
+    }
+
+    .hconn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .hconn.off {
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    .hconn.on {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: .5px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .hdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .hdis {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      margin-left: 5px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      border: .5px solid rgba(255, 255, 255, 0.08);
+      transition: all .15s;
+    }
+
+    .hdis:hover {
+      color: rgba(255, 255, 255, 0.5);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    #body {
+      margin-top: var(--hh);
+      display: flex;
+      min-height: calc(100dvh - var(--hh));
+    }
+
+    #sb {
+      width: 215px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: .5px solid var(--bd);
+      padding: 1.25rem 1rem;
+      overflow-y: auto;
+    }
+
+    #main {
+      flex: 1;
+      padding: 1.75rem 2rem;
+      overflow-y: auto;
+      max-height: calc(100dvh - var(--hh));
+    }
+
+    .sb-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      color: var(--t3);
+      text-transform: uppercase;
+      margin-bottom: .6rem;
+    }
+
+    .fc {
+      padding: 9px 10px;
+      border-radius: var(--r);
+      border: .5px solid var(--bd);
+      margin-bottom: 5px;
+      background: var(--bg);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .fc:hover {
+      border-color: var(--orange);
+      background: var(--ol2);
+    }
+
+    .ft {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t);
+      margin-bottom: 2px;
+    }
+
+    .fd {
+      font-size: 10px;
+      color: var(--t2);
+      line-height: 1.4;
+    }
+
+    .ftag {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 20px;
+      background: var(--ol);
+      color: var(--od);
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    .panel {
+      display: none;
+      animation: fi .2s ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fi {
+      from {
+        opacity: 0;
+        transform: translateY(4px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .pt {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--t);
+      letter-spacing: -.02em;
+      margin-bottom: 4px;
+    }
+
+    .ps {
+      font-size: 13px;
+      color: var(--t2);
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--bg);
+      border: .5px solid var(--bd);
+      border-radius: var(--rl);
+      padding: 1.5rem;
+    }
+
+    .csm {
+      max-width: 440px;
+    }
+
+    .fl {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--t2);
+      margin-bottom: 5px;
+    }
+
+    .fw {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .zi {
+      width: 100%;
+      padding: 10px 38px 10px 12px;
+      font-size: 13px;
+      font-family: var(--mono);
+      background: var(--bg2);
+      border: .5px solid var(--bd2);
+      border-radius: var(--r);
+      color: var(--t);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .zi:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(232, 98, 42, 0.1);
+    }
+
+    .zs {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-family: var(--font);
+      background: var(--bg2);
+      border: .5px solid var(--bd2);
+      border-radius: var(--r);
+      color: var(--t);
+      outline: none;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .zs:focus {
+      border-color: var(--orange);
+    }
+
+    .tb {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--t3);
+      padding: 3px;
+      display: flex;
+      align-items: center;
+    }
+
+    .bp {
+      width: 100%;
+      padding: 11px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--r);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background .15s;
+    }
+
+    .bp:hover {
+      background: var(--od);
+    }
+
+    .bp:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .bn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      border-radius: var(--r);
+      font-size: 12px;
+      margin-bottom: .75rem;
+    }
+
+    .bn svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .bn-s {
+      background: var(--s-bg);
+      border: .5px solid var(--s-bd);
+      color: var(--s-t);
+    }
+
+    .bn-d {
+      background: var(--d-bg);
+      border: .5px solid var(--d-bd);
+      color: var(--d-t);
+      margin-top: .75rem;
+      margin-bottom: 0;
+    }
+
+    .bn-w {
+      background: var(--w-bg);
+      border: .5px solid var(--w-bd);
+      color: var(--w-t);
+    }
+
+    .bn-i {
+      background: var(--i-bg);
+      border: .5px solid var(--i-bd);
+      color: var(--i-t);
+    }
+
+    .spin {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+
+    .spin-d {
+      border-color: var(--bd2);
+      border-top-color: var(--orange);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .mfs {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .mf {
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: .5px solid var(--bd);
+      background: var(--bg);
+      color: var(--t2);
+      transition: all .15s;
+      font-weight: 500;
+    }
+
+    .mf.on {
+      background: var(--ol);
+      border-color: var(--orange);
+      color: var(--od);
+      font-weight: 600;
+    }
+
+    .mg {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+      gap: 8px;
+    }
+
+    .mc {
+      background: var(--bg);
+      border: .5px solid var(--bd);
+      border-radius: var(--rl);
+      padding: 13px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+    }
+
+    .mc:hover {
+      border-color: var(--bd2);
+      background: var(--bg2);
+    }
+
+    .mc.active {
+      border-color: var(--orange);
+      background: var(--ol2);
+    }
+
+    .mc.active::after {
+      content: '';
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--orange);
+    }
+
+    .mi {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 9px;
+    }
+
+    .mi svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .mn {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--t);
+      margin-bottom: 3px;
+    }
+
+    .md {
+      font-size: 10px;
+      color: var(--t2);
+      line-height: 1.4;
+    }
+
+    .ep-tag {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--bg3);
+      color: var(--t3);
+      font-family: var(--mono);
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    .frow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 15px;
+      background: var(--bg2);
+      border: .5px solid var(--bd);
+      border-radius: var(--rl);
+      margin-top: 1rem;
+    }
+
+    .frow-t {
+      font-size: 12px;
+      color: var(--t2);
+    }
+
+    .frow-t strong {
+      color: var(--t);
+      font-weight: 600;
+    }
+
+    .bf {
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: var(--r);
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .bf:hover {
+      background: var(--od);
+    }
+
+    .dtb {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: .875rem;
+    }
+
+    .dm {
+      font-size: 13px;
+      color: var(--t2);
+    }
+
+    .dm strong {
+      color: var(--t);
+      font-weight: 600;
+    }
+
+    .dm em {
+      font-style: normal;
+      font-size: 11px;
+      color: var(--t3);
+    }
+
+    .ebs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .eb {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 13px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: var(--r);
+      cursor: pointer;
+      border: .5px solid var(--bd2);
+      background: var(--bg2);
+      color: var(--t);
+      transition: background .15s;
+      font-family: var(--font);
+    }
+
+    .eb:hover {
+      background: var(--bg3);
+    }
+
+    .eb svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .eb.pr {
+      background: var(--orange);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .eb.pr:hover {
+      background: var(--od);
+    }
+
+    .eb.enrich-btn {
+      background: var(--i-bg);
+      color: var(--i-t);
+      border-color: var(--i-bd);
+    }
+
+    .eb.enrich-btn:hover {
+      background: #dbeafe;
+    }
+
+    .slbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin: .875rem 0 .5rem;
+    }
+
+    .cts {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: .875rem;
+    }
+
+    .ct {
+      font-size: 10px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: .5px solid var(--bd);
+      background: var(--bg2);
+      color: var(--t2);
+      user-select: none;
+      transition: all .15s;
+      font-weight: 500;
+    }
+
+    .ct.on {
+      background: var(--ol);
+      border-color: var(--orange);
+      color: var(--od);
+      font-weight: 600;
+    }
+
+    .raw-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--t3);
+      cursor: pointer;
+      margin-bottom: .5rem;
+    }
+
+    .raw-toggle:hover {
+      color: var(--t2);
+    }
+
+    .raw-toggle svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .raw-box {
+      background: var(--bg2);
+      border: .5px solid var(--bd);
+      border-radius: var(--r);
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--t2);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-bottom: .875rem;
+      display: none;
+    }
+
+    .tw {
+      overflow-x: auto;
+      border: .5px solid var(--bd);
+      border-radius: var(--rl);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th {
+      background: var(--bg2);
+      padding: 9px 13px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: .05em;
+      color: var(--t2);
+      border-bottom: .5px solid var(--bd);
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 9px 13px;
+      border-bottom: .5px solid var(--bd);
+      color: var(--t);
+      white-space: nowrap;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--bg2);
+    }
+
+    .p {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .po {
+      background: #ecfdf5;
+      color: #065f46;
+    }
+
+    .pp {
+      background: var(--ol);
+      color: var(--od);
+    }
+
+    .pc {
+      background: var(--bg3);
+      color: var(--t2);
+    }
+
+    .pd {
+      background: var(--bg2);
+      color: var(--t2);
+    }
+
+    .null-val {
+      color: var(--t3);
+    }
+
+    .tfoot {
+      text-align: center;
+      padding: 9px;
+      font-size: 11px;
+      color: var(--t3);
+      border-top: .5px solid var(--bd);
+    }
+
+    .es {
+      text-align: center;
+      padding: 3rem;
+      color: var(--t3);
+      font-size: 13px;
+    }
+
+    .bk {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--t2);
+      cursor: pointer;
+      margin-bottom: 1rem;
+      padding: 4px 0;
+    }
+
+    .bk:hover {
+      color: var(--t);
+    }
+
+    .bk svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .prog-bar {
+      height: 3px;
+      background: var(--bd);
+      border-radius: 2px;
+      margin-bottom: .5rem;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: var(--orange);
+      border-radius: 2px;
+      transition: width .3s;
+    }
+
+    .size-btn {
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 5px;
+      cursor: pointer;
+      border: .5px solid var(--bd2);
+      background: var(--bg2);
+      color: var(--t2);
+      font-family: var(--font);
+      transition: all .15s;
+    }
+
+    .size-btn:hover {
+      border-color: var(--orange);
+      color: var(--od);
+    }
+
+    .size-btn.active {
+      background: var(--ol);
+      border-color: var(--orange);
+      color: var(--od);
+      font-weight: 600;
+    }
+
+    .param-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: .625rem;
+    }
+
+    .param-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t2);
+      letter-spacing: .03em;
+    }
+
+    .param-select {
+      font-size: 12px;
+      font-family: var(--font);
+      background: var(--bg);
+      border: .5px solid var(--bd2);
+      border-radius: var(--r);
+      color: var(--t);
+      padding: 7px 10px;
+      outline: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .param-select:focus {
+      border-color: var(--orange);
+    }
+
+    .param-hint {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: -.25rem;
+      margin-bottom: .375rem;
+      grid-column: 2;
+    }
+  </style>
 </head>
+
 <body>
-<header id="hdr">
-  <div class="h-logo">
-    <div class="h-mark"><svg viewBox="0 0 18 18" fill="none"><path d="M3 4.5L9 13.5L15 4.5H3Z" fill="white"/></svg></div>
-    <span class="h-name">Zuper</span>
-    <div class="h-sep"></div>
-    <span class="h-sub">Data Explorer</span>
-  </div>
-  <nav class="steps">
-    <div class="si active" id="si1" onclick="goStep(1)"><div class="sn" id="sn1">1</div><span class="sl">Connect</span></div>
-    <span class="sarr">›</span>
-    <div class="si locked" id="si2" onclick="goStep(2)"><div class="sn" id="sn2">2</div><span class="sl">Select module</span></div>
-    <span class="sarr">›</span>
-    <div class="si locked" id="si3" onclick="goStep(3)"><div class="sn" id="sn3">3</div><span class="sl">Preview &amp; export</span></div>
-  </nav>
-  <div id="hconn" class="hconn off">
-    <span class="hdot"></span><span id="hcl">Not connected</span>
-  </div>
-</header>
-
-<div id="body">
-  <aside id="sb">
-    <div class="sb-lbl">Feature ideas</div>
-    <div class="fc"><div class="ft">Scheduled exports</div><div class="fd">Auto-export daily/weekly to email, Drive, or S3</div><div class="ftag">Suggested</div></div>
-    <div class="fc"><div class="ft">Cross-module reports</div><div class="fd">Join Jobs + Customers + Invoices into one view</div><div class="ftag">Popular</div></div>
-    <div class="fc"><div class="ft">Client portal</div><div class="fd">Read-only shareable link per customer</div><div class="ftag">High impact</div></div>
-    <div class="fc"><div class="ft">Google Sheets sync</div><div class="fd">Live push via Apps Script or webhook</div></div>
-    <div class="fc"><div class="ft">Live status board</div><div class="fd">Real-time board by tech, territory, job type</div></div>
-    <div class="fc"><div class="ft">KPI &amp; metrics layer</div><div class="fd">Job counts, revenue totals, SLA completion rates</div></div>
-  </aside>
-
-  <main id="main">
-    <!-- Step 1 -->
-    <div id="p1" class="panel active">
-      <div class="pt">Connect your workspace</div>
-      <div class="ps">Enter your Zuper API key and region to authenticate.</div>
-      <div class="card csm">
-        <label class="fl" for="ak">API Key</label>
-        <div class="fw">
-          <input class="zi" id="ak" type="password" placeholder="Your Zuper API key" autocomplete="off"/>
-          <button class="tb" onclick="toggleKey()"><svg id="eic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </div>
-        <label class="fl" for="rg">Region</label>
-        <select class="zs" id="rg">
-          <option value="https://us-east-1.zuperpro.com/api/">US East 1 — us-east-1</option>
-          <option value="https://us-west-1c.zuperpro.com/api/">US West 1C — us-west-1c</option>
-          <option value="https://staging.zuperpro.com/api/">Staging</option>
-        </select>
-        <button class="bp" id="cb" onclick="doConnect()">Connect workspace</button>
-        <div id="cerr" style="display:none" class="bn bn-d">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          <span id="cerrmsg"></span>
-        </div>
-      </div>
+  <header id="hdr">
+    <div class="h-logo">
+      <div class="h-mark"><svg viewBox="0 0 18 18" fill="none">
+          <path d="M3 4.5L9 13.5L15 4.5H3Z" fill="white" />
+        </svg></div>
+      <span class="h-name">Zuper</span>
+      <div class="h-sep"></div>
+      <span class="h-sub">Data Explorer</span>
     </div>
-
-    <!-- Step 2 -->
-    <div id="p2" class="panel">
-      <div class="pt">Select a module</div>
-      <div class="ps">Pick the data you want to fetch. Each card shows the confirmed API endpoint from Zuper's docs.</div>
-      <div class="mfs">
-        <div class="mf on" onclick="filt(this,'all')">All</div>
-        <div class="mf" onclick="filt(this,'ops')">Operations</div>
-        <div class="mf" onclick="filt(this,'people')">People</div>
-        <div class="mf" onclick="filt(this,'finance')">Finance</div>
-        <div class="mf" onclick="filt(this,'inventory')">Inventory</div>
-        <div class="mf" onclick="filt(this,'settings')">Settings</div>
+    <nav class="steps">
+      <div class="si active" id="si1" onclick="goStep(1)">
+        <div class="sn" id="sn1">1</div><span class="sl">Connect</span>
       </div>
-      <div id="mg" class="mg"></div>
-
-      <!-- Params panel: shown for modules that need filter inputs before fetching -->
-      <div id="params-panel" style="display:none;margin-top:1rem;background:var(--bg2);border:.5px solid var(--bd);border-radius:var(--rl);padding:1rem 1.25rem;">
-        <div style="font-size:12px;font-weight:600;color:var(--t);margin-bottom:.75rem" id="params-title">Configure filters</div>
-        <div id="params-fields"></div>
+      <span class="sarr">›</span>
+      <div class="si locked" id="si2" onclick="goStep(2)">
+        <div class="sn" id="sn2">2</div><span class="sl">Select module</span>
       </div>
-
-      <div id="frow" style="display:none" class="frow">
-        <div class="frow-t" id="frowt"></div>
-        <button class="bf" id="fetch-btn" onclick="doFetch()">Fetch data →</button>
+      <span class="sarr">›</span>
+      <div class="si locked" id="si3" onclick="goStep(3)">
+        <div class="sn" id="sn3">3</div><span class="sl">Preview &amp; export</span>
       </div>
+    </nav>
+    <div id="hconn" class="hconn off">
+      <span class="hdot"></span><span id="hcl">Not connected</span>
     </div>
+  </header>
 
-    <!-- Step 3 -->
-    <div id="p3" class="panel">
-      <div class="bk" onclick="goStep(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back to modules</div>
-      <div id="banners"></div>
-      <div class="dtb">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <div class="dm" id="dmeta">Loading…</div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);">
-            <span>Preview rows:</span>
-            <div style="display:flex;gap:3px;" id="size-btns">
-              <button onclick="setPreview(10)" class="size-btn">10</button>
-              <button onclick="setPreview(20)" class="size-btn">20</button>
-              <button onclick="setPreview(50)" class="size-btn active">50</button>
-              <button onclick="setPreview(100)" class="size-btn">100</button>
-            </div>
+  <div id="body">
+    <aside id="sb">
+      <div class="sb-lbl">Feature ideas</div>
+      <div class="fc">
+        <div class="ft">Scheduled exports</div>
+        <div class="fd">Auto-export daily/weekly to email, Drive, or S3</div>
+        <div class="ftag">Suggested</div>
+      </div>
+      <div class="fc">
+        <div class="ft">Cross-module reports</div>
+        <div class="fd">Join Jobs + Customers + Invoices into one view</div>
+        <div class="ftag">Popular</div>
+      </div>
+      <div class="fc">
+        <div class="ft">Client portal</div>
+        <div class="fd">Read-only shareable link per customer</div>
+        <div class="ftag">High impact</div>
+      </div>
+      <div class="fc">
+        <div class="ft">Google Sheets sync</div>
+        <div class="fd">Live push via Apps Script or webhook</div>
+      </div>
+      <div class="fc">
+        <div class="ft">Live status board</div>
+        <div class="fd">Real-time board by tech, territory, job type</div>
+      </div>
+      <div class="fc">
+        <div class="ft">KPI &amp; metrics layer</div>
+        <div class="fd">Job counts, revenue totals, SLA completion rates</div>
+      </div>
+    </aside>
+
+    <main id="main">
+      <!-- Step 1 -->
+      <div id="p1" class="panel active">
+        <div class="pt">Connect your workspace</div>
+        <div class="ps">Enter your Zuper API key and region to authenticate.</div>
+        <div class="card csm">
+          <label class="fl" for="ak">API Key</label>
+          <div class="fw">
+            <input class="zi" id="ak" type="password" placeholder="Your Zuper API key" autocomplete="off" />
+            <button class="tb" onclick="toggleKey()"><svg id="eic" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg></button>
+          </div>
+          <label class="fl" for="rg">Region</label>
+          <select class="zs" id="rg">
+            <option value="https://us-east-1.zuperpro.com/api/">US East 1 — us-east-1</option>
+            <option value="https://us-west-1c.zuperpro.com/api/">US West 1C — us-west-1c</option>
+            <option value="https://staging.zuperpro.com/api/">Staging</option>
+          </select>
+          <button class="bp" id="cb" onclick="doConnect()">Connect workspace</button>
+          <div id="cerr" style="display:none" class="bn bn-d">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            <span id="cerrmsg"></span>
           </div>
         </div>
-        <div class="ebs" id="ebs"></div>
       </div>
-      <div id="prog" style="display:none"><div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div></div>
-      <div id="prog-label" style="font-size:11px;color:var(--t3);margin-bottom:.5rem;display:none"></div>
-      <div class="slbl">Columns <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--t3)">from your account's live response</span></div>
-      <div id="cts" class="cts"></div>
-      <div id="rawsec"></div>
-      <div class="tw"><div id="tc"></div></div>
-    </div>
-  </main>
-</div>
 
-<script>
-/* ── Flatten one record, depth-limited ───────────────────────── */
-function flatten(obj, prefix, depth){
-  prefix=prefix||''; depth=depth===undefined?0:depth;
-  const out={};
-  if(!obj||typeof obj!=='object')return out;
-  for(const[k,v]of Object.entries(obj)){
-    const key=prefix?prefix+'.'+k:k;
-    if(v===null||v===undefined){out[key]='';}
-    else if(Array.isArray(v)){
-      if(!v.length){out[key]='';}
-      else if(typeof v[0]==='object'&&v[0]!==null){
-        out[key]=v.map(x=>bestStr(x)).filter(Boolean).join(', ');
-      }else{out[key]=v.join(', ');}
-    }else if(typeof v==='object'&&depth<2){
-      Object.assign(out,flatten(v,key,depth+1));
-    }else if(typeof v==='object'){out[key]=bestStr(v);}
-    else if(typeof v==='boolean'){out[key]=v?'Yes':'No';}
-    else{out[key]=String(v);}
-  }
-  return out;
-}
+      <!-- Step 2 -->
+      <div id="p2" class="panel">
+        <div class="pt">Select a module</div>
+        <div class="ps">Pick the data you want to fetch. Each card shows the confirmed API endpoint from Zuper's docs.
+        </div>
+        <div class="mfs">
+          <div class="mf on" onclick="filt(this,'all')">All</div>
+          <div class="mf" onclick="filt(this,'ops')">Operations</div>
+          <div class="mf" onclick="filt(this,'people')">People</div>
+          <div class="mf" onclick="filt(this,'finance')">Finance</div>
+          <div class="mf" onclick="filt(this,'inventory')">Inventory</div>
+          <div class="mf" onclick="filt(this,'settings')">Settings</div>
+        </div>
+        <div id="mg" class="mg"></div>
 
-function bestStr(obj){
-  if(!obj||typeof obj!=='object')return String(obj||'');
-  const keys=['first_name','last_name','name','full_name','display_name',
-    'job_type_name','status_name','checklist_name','form_name','team_name',
-    'role_name','type_name','category_name','territory_name','skill_name',
-    'workflow_name','sub_status_name','customer_name','title','label','description'];
-  for(const k of keys){if(obj[k]&&typeof obj[k]==='string')return obj[k];}
-  if(obj.first_name||obj.last_name)return[obj.first_name,obj.last_name].filter(Boolean).join(' ');
-  for(const v of Object.values(obj)){if(v&&typeof v==='string'&&v.length<100)return v;}
-  return '';
-}
+        <!-- Params panel: shown for modules that need filter inputs before fetching -->
+        <div id="params-panel"
+          style="display:none;margin-top:1rem;background:var(--bg2);border:.5px solid var(--bd);border-radius:var(--rl);padding:1rem 1.25rem;">
+          <div style="font-size:12px;font-weight:600;color:var(--t);margin-bottom:.75rem" id="params-title">Configure
+            filters</div>
+          <div id="params-fields"></div>
+        </div>
 
-/* ── Confirmed Zuper API endpoints (from developers.zuper.co) ── */
-const MODS=[
-  /* ── Operations ── */
-  {id:'jobs',name:'Jobs',cat:'ops',
-   desc:'Work orders & scheduling',ic:'#E6F1FB',ico:'#185FA5',
-   ep:'/jobs',detailEp:'/jobs/{uid}',uidField:'job_uid',
-   svg:'<path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['job_uid','job_title','job_category','job_type','status','sub_status',
-             'customer_name','customer.first_name','assigned_employees',
-             'scheduled_start_time','scheduled_end_time','created_at','priority','tags']},
+        <div id="frow" style="display:none" class="frow">
+          <div class="frow-t" id="frowt"></div>
+          <button class="bf" id="fetch-btn" onclick="doFetch()">Fetch data →</button>
+        </div>
+      </div>
 
-  {id:'recurring_jobs',name:'Recurring jobs',cat:'ops',
-   desc:'Recurring work order schedules',ic:'#EEEDFE',ico:'#534AB7',
-   ep:'/recurring_jobs',detailEp:null,uidField:'recurring_job_uid',
-   svg:'<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['recurring_job_uid','job_title','job_type','status','frequency','next_schedule_date','customer_name','created_at']},
+      <!-- Step 3 -->
+      <div id="p3" class="panel">
+        <div class="bk" onclick="goStep(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 5l-7 7 7 7" />
+          </svg>Back to modules</div>
+        <div id="banners"></div>
+        <div class="dtb">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div class="dm" id="dmeta">Loading…</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2);">
+              <span>Preview rows:</span>
+              <div style="display:flex;gap:3px;" id="size-btns">
+                <button onclick="setPreview(10)" class="size-btn">10</button>
+                <button onclick="setPreview(20)" class="size-btn">20</button>
+                <button onclick="setPreview(50)" class="size-btn active">50</button>
+                <button onclick="setPreview(100)" class="size-btn">100</button>
+              </div>
+            </div>
+          </div>
+          <div class="ebs" id="ebs"></div>
+        </div>
+        <div id="prog" style="display:none">
+          <div class="prog-bar">
+            <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div id="prog-label" style="font-size:11px;color:var(--t3);margin-bottom:.5rem;display:none"></div>
+        <div class="slbl">Columns <span
+            style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--t3)">from your
+            account's live response</span></div>
+        <div id="cts" class="cts"></div>
+        <div id="rawsec"></div>
+        <div class="tw">
+          <div id="tc"></div>
+        </div>
+      </div>
+    </main>
+  </div>
 
-  {id:'timesheets',name:'Timesheets',cat:'ops',
-   desc:'Time logs per technician & job',ic:'#FAEEDA',ico:'#854F0B',
-   ep:'/timesheets',detailEp:null,uidField:'timesheet_uid',
-   svg:'<rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['timesheet_uid','user_name','job_title','check_in_time','check_out_time','duration','travel_time','date']},
+  <script>
+    /* ── Flatten one record, depth-limited ───────────────────────── */
+    function flatten(obj, prefix, depth) {
+      prefix = prefix || ''; depth = depth === undefined ? 0 : depth;
+      const out = {};
+      if (!obj || typeof obj !== 'object') return out;
+      for (const [k, v] of Object.entries(obj)) {
+        const key = prefix ? prefix + '.' + k : k;
+        if (v === null || v === undefined) { out[key] = ''; }
+        else if (Array.isArray(v)) {
+          if (!v.length) { out[key] = ''; }
+          else if (typeof v[0] === 'object' && v[0] !== null) {
+            out[key] = v.map(x => bestStr(x)).filter(Boolean).join(', ');
+          } else { out[key] = v.join(', '); }
+        } else if (typeof v === 'object' && depth < 2) {
+          Object.assign(out, flatten(v, key, depth + 1));
+        } else if (typeof v === 'object') { out[key] = bestStr(v); }
+        else if (typeof v === 'boolean') { out[key] = v ? 'Yes' : 'No'; }
+        else { out[key] = String(v); }
+      }
+      return out;
+    }
 
-  {id:'requests',name:'Requests',cat:'ops',
-   desc:'Customer service requests',ic:'#FAECE7',ico:'#993C1D',
-   ep:'/requests',detailEp:'/requests/{uid}',uidField:'request_uid',
-   svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['request_uid','title','status','customer_name','created_at','description']},
+    function bestStr(obj) {
+      if (!obj || typeof obj !== 'object') return String(obj || '');
+      const keys = ['first_name', 'last_name', 'name', 'full_name', 'display_name',
+        'job_type_name', 'status_name', 'checklist_name', 'form_name', 'team_name',
+        'role_name', 'type_name', 'category_name', 'territory_name', 'skill_name',
+        'workflow_name', 'sub_status_name', 'customer_name', 'title', 'label', 'description'];
+      for (const k of keys) { if (obj[k] && typeof obj[k] === 'string') return obj[k]; }
+      if (obj.first_name || obj.last_name) return [obj.first_name, obj.last_name].filter(Boolean).join(' ');
+      for (const v of Object.values(obj)) { if (v && typeof v === 'string' && v.length < 100) return v; }
+      return '';
+    }
 
-  /* ── People ── */
-  {id:'customers',name:'Customers',cat:'people',
-   desc:'Customer accounts & contacts',ic:'#EAF3DE',ico:'#3B6D11',
-   ep:'/customers',detailEp:'/customers/{uid}',uidField:'customer_uid',
-   svg:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['customer_uid','first_name','last_name','email','mobile_number','phone_number',
-             'billing_address','service_address','customer_type','tags','is_active','created_at']},
+    /* ── Confirmed Zuper API endpoints (from developers.zuper.co) ── */
+    const MODS = [
+      /* ── Operations ── */
+      {
+        id: 'jobs', name: 'Jobs', cat: 'ops',
+        desc: 'Work orders & scheduling', ic: '#E6F1FB', ico: '#185FA5',
+        ep: '/jobs', detailEp: '/jobs/{uid}', uidField: 'job_uid',
+        svg: '<path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['job_uid', 'job_title', 'job_category', 'job_type', 'status', 'sub_status',
+          'customer_name', 'customer.first_name', 'assigned_employees',
+          'scheduled_start_time', 'scheduled_end_time', 'created_at', 'priority', 'tags']
+      },
 
-  {id:'organizations',name:'Organizations',cat:'people',
-   desc:'Company / org accounts',ic:'#E1F5EE',ico:'#0F6E56',
-   ep:'/organizations',detailEp:'/organizations/{uid}',uidField:'org_uid',
-   svg:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/><polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['org_uid','org_name','email','phone_number','billing_address','is_active','created_at']},
+      {
+        id: 'recurring_jobs', name: 'Recurring jobs', cat: 'ops',
+        desc: 'Recurring work order schedules', ic: '#EEEDFE', ico: '#534AB7',
+        ep: '/recurring_jobs', detailEp: null, uidField: 'recurring_job_uid',
+        svg: '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['recurring_job_uid', 'job_title', 'job_type', 'status', 'frequency', 'next_schedule_date', 'customer_name', 'created_at']
+      },
 
-  {id:'users',name:'Users / Technicians',cat:'people',
-   desc:'Field staff & back-office users',ic:'#EEEDFE',ico:'#534AB7',
-   ep:'/users',detailEp:'/users/{uid}',uidField:'user_uid',
-   svg:'<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['user_uid','first_name','last_name','email','mobile_number','phone_number','role','is_active','created_at']},
+      {
+        id: 'timesheets', name: 'Timesheets', cat: 'ops',
+        desc: 'Time logs per technician & job', ic: '#FAEEDA', ico: '#854F0B',
+        ep: '/timesheets', detailEp: null, uidField: 'timesheet_uid',
+        svg: '<rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['timesheet_uid', 'user_name', 'job_title', 'check_in_time', 'check_out_time', 'duration', 'travel_time', 'date']
+      },
 
-  {id:'teams',name:'Teams',cat:'people',
-   desc:'Team groups & membership',ic:'#E6F1FB',ico:'#185FA5',
-   ep:'/teams',detailEp:null,uidField:'team_uid',
-   svg:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['team_uid','team_name','manager_name','members_count','is_active','created_at']},
+      {
+        id: 'requests', name: 'Requests', cat: 'ops',
+        desc: 'Customer service requests', ic: '#FAECE7', ico: '#993C1D',
+        ep: '/requests', detailEp: '/requests/{uid}', uidField: 'request_uid',
+        svg: '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['request_uid', 'title', 'status', 'customer_name', 'created_at', 'description']
+      },
 
-  /* ── Finance ── */
-  {id:'invoices',name:'Invoices',cat:'finance',
-   desc:'Billing & payment records',ic:'#EAF3DE',ico:'#1a7a30',
-   ep:'/invoices',detailEp:'/invoices/{uid}',uidField:'invoice_uid',
-   svg:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['invoice_uid','invoice_number','customer_name','sub_total','tax_amount','total_amount','payment_status','due_date','created_at']},
+      /* ── People ── */
+      {
+        id: 'customers', name: 'Customers', cat: 'people',
+        desc: 'Customer accounts & contacts', ic: '#EAF3DE', ico: '#3B6D11',
+        ep: '/customers', detailEp: '/customers/{uid}', uidField: 'customer_uid',
+        svg: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['customer_uid', 'first_name', 'last_name', 'email', 'mobile_number', 'phone_number',
+          'billing_address', 'service_address', 'customer_type', 'tags', 'is_active', 'created_at']
+      },
 
-  {id:'estimates',name:'Quotes / Estimates',cat:'finance',
-   desc:'Pre-job pricing & approvals',ic:'#FAEEDA',ico:'#854F0B',
-   ep:'/estimates',detailEp:'/estimates/{uid}',uidField:'estimate_uid',
-   svg:'<path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['estimate_uid','estimate_number','customer_name','total_amount','status','valid_until','created_at']},
+      {
+        id: 'organizations', name: 'Organizations', cat: 'people',
+        desc: 'Company / org accounts', ic: '#E1F5EE', ico: '#0F6E56',
+        ep: '/organizations', detailEp: '/organizations/{uid}', uidField: 'org_uid',
+        svg: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/><polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['org_uid', 'org_name', 'email', 'phone_number', 'billing_address', 'is_active', 'created_at']
+      },
 
-  {id:'service_contracts',name:'Service contracts',cat:'finance',
-   desc:'SLA & maintenance agreements',ic:'#E1F5EE',ico:'#0F6E56',
-   ep:'/service_contracts',detailEp:'/service_contracts/{uid}',uidField:'contract_uid',
-   svg:'<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['contract_uid','contract_name','customer_name','start_date','end_date','contract_value','status','created_at']},
+      {
+        id: 'users', name: 'Users / Technicians', cat: 'people',
+        desc: 'Field staff & back-office users', ic: '#EEEDFE', ico: '#534AB7',
+        ep: '/users', detailEp: '/users/{uid}', uidField: 'user_uid',
+        svg: '<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['user_uid', 'first_name', 'last_name', 'email', 'mobile_number', 'phone_number', 'role', 'is_active', 'created_at']
+      },
 
-  /* ── Inventory ── */
-  {id:'products',name:'Parts & Products',cat:'inventory',
-   desc:'Parts catalog, services & pricing',ic:'#FAECE7',ico:'#993C1D',
-   ep:'/products',detailEp:'/products/{uid}',uidField:'product_uid',
-   svg:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['product_uid','product_name','part_number','category','unit_price','selling_price','cost_price','uom','is_active']},
+      {
+        id: 'teams', name: 'Teams', cat: 'people',
+        desc: 'Team groups & membership', ic: '#E6F1FB', ico: '#185FA5',
+        ep: '/teams', detailEp: null, uidField: 'team_uid',
+        svg: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['team_uid', 'team_name', 'manager_name', 'members_count', 'is_active', 'created_at']
+      },
 
-  {id:'assets',name:'Assets',cat:'inventory',
-   desc:'Equipment & asset tracking',ic:'#FCEBEB',ico:'#A32D2D',
-   ep:'/assets',detailEp:'/assets/{uid}',uidField:'asset_uid',
-   svg:'<rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['asset_uid','asset_name','asset_type','serial_number','model','customer_name','status','installation_date','warranty_expiry_date']},
+      /* ── Finance ── */
+      {
+        id: 'invoices', name: 'Invoices', cat: 'finance',
+        desc: 'Billing & payment records', ic: '#EAF3DE', ico: '#1a7a30',
+        ep: '/invoices', detailEp: '/invoices/{uid}', uidField: 'invoice_uid',
+        svg: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['invoice_uid', 'invoice_number', 'customer_name', 'sub_total', 'tax_amount', 'total_amount', 'payment_status', 'due_date', 'created_at']
+      },
 
-  {id:'properties',name:'Properties',cat:'inventory',
-   desc:'Service locations & properties',ic:'#FAEEDA',ico:'#854F0B',
-   ep:'/properties',detailEp:'/properties/{uid}',uidField:'property_uid',
-   svg:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['property_uid','property_name','address','customer_name','is_active','created_at']},
+      {
+        id: 'estimates', name: 'Quotes / Estimates', cat: 'finance',
+        desc: 'Pre-job pricing & approvals', ic: '#FAEEDA', ico: '#854F0B',
+        ep: '/estimates', detailEp: '/estimates/{uid}', uidField: 'estimate_uid',
+        svg: '<path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['estimate_uid', 'estimate_number', 'customer_name', 'total_amount', 'status', 'valid_until', 'created_at']
+      },
 
-  /* ── Settings ── */
-  {id:'job_categories',name:'Job categories',cat:'settings',
-   desc:'All job categories with statuses — GET /jobs/category',ic:'#F1EFE8',ico:'#5F5E5A',
-   ep:'/jobs/category',detailEp:null,uidField:'category_uid',
-   staticParams:{populate_statuses:'true'},
-   svg:'<path d="M4 6h16M4 12h16M4 18h7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['category_uid','job_category_name','name','color','statuses','is_active','created_at']},
+      {
+        id: 'service_contracts', name: 'Service contracts', cat: 'finance',
+        desc: 'SLA & maintenance agreements', ic: '#E1F5EE', ico: '#0F6E56',
+        ep: '/service_contracts', detailEp: '/service_contracts/{uid}', uidField: 'contract_uid',
+        svg: '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['contract_uid', 'contract_name', 'customer_name', 'start_date', 'end_date', 'contract_value', 'status', 'created_at']
+      },
 
-  {id:'job_status_by_category',name:'Job statuses by category',cat:'settings',
-   desc:'Statuses for a specific job category — GET /jobs/status/{category_uid}',ic:'#E6F1FB',ico:'#185FA5',
-   ep:'/jobs/status',detailEp:null,uidField:'status_uid',
-   requiresParams:true,
-   paramDefs:[{
-     id:'category_uid',label:'Job category',hint:'Select a category to load its statuses',
-     loadsFrom:'job_categories',valueField:'category_uid',labelField:'job_category_name||name'
-   }],
-   buildEp: (params) => `/jobs/status/${params.category_uid}`,
-   svg:'<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['status_uid','status_name','name','color','category','sub_statuses','is_active']},
+      /* ── Inventory ── */
+      {
+        id: 'products', name: 'Parts & Products', cat: 'inventory',
+        desc: 'Parts catalog, services & pricing', ic: '#FAECE7', ico: '#993C1D',
+        ep: '/products', detailEp: '/products/{uid}', uidField: 'product_uid',
+        svg: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['product_uid', 'product_name', 'part_number', 'category', 'unit_price', 'selling_price', 'cost_price', 'uom', 'is_active']
+      },
 
-  {id:'checklist_by_status',name:'Checklists by category & status',cat:'settings',
-   desc:'Checklists for a category+status combo — GET /settings/checklist',ic:'#EAF3DE',ico:'#3B6D11',
-   ep:'/settings/checklist',detailEp:null,uidField:'checklist_uid',
-   requiresParams:true,
-   paramDefs:[
-     {id:'category_uid',label:'Job category',hint:'Select a job category first',
-      loadsFrom:'job_categories',valueField:'category_uid',labelField:'job_category_name||name'},
-     {id:'job_status_uid',label:'Job status',hint:'Status options load after you pick a category',
-      loadsFrom:'job_status_by_category',valueField:'status_uid',labelField:'status_name||name',
-      dependsOn:'category_uid'}
-   ],
-   buildEp: (params) => `/settings/checklist`,
-   buildParams: (params) => ({category_uid:params.category_uid, job_status_uid:params.job_status_uid}),
-   svg:'<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['checklist_uid','checklist_name','name','checklist_items','is_active']},
+      {
+        id: 'assets', name: 'Assets', cat: 'inventory',
+        desc: 'Equipment & asset tracking', ic: '#FCEBEB', ico: '#A32D2D',
+        ep: '/assets', detailEp: '/assets/{uid}', uidField: 'asset_uid',
+        svg: '<rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['asset_uid', 'asset_name', 'asset_type', 'serial_number', 'model', 'customer_name', 'status', 'installation_date', 'warranty_expiry_date']
+      },
 
-  {id:'jobtypes',name:'Job types',cat:'settings',
-   desc:'Job categories + checklists & forms',ic:'#F1EFE8',ico:'#5F5E5A',
-   ep:'/jobtypes',detailEp:null,uidField:'job_type_uid',
-   svg:'<path d="M4 6h16M4 12h16M4 18h7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['job_type_uid','job_type_name','color','default_duration','checklists','forms','is_active']},
+      {
+        id: 'properties', name: 'Properties', cat: 'inventory',
+        desc: 'Service locations & properties', ic: '#FAEEDA', ico: '#854F0B',
+        ep: '/properties', detailEp: '/properties/{uid}', uidField: 'property_uid',
+        svg: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['property_uid', 'property_name', 'address', 'customer_name', 'is_active', 'created_at']
+      },
 
-  {id:'checklists',name:'Checklists',cat:'settings',
-   desc:'All checklists & checklist items',ic:'#EAF3DE',ico:'#3B6D11',
-   ep:'/checklists',detailEp:'/checklists/{uid}',uidField:'checklist_uid',
-   svg:'<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['checklist_uid','checklist_name','checklist_items','is_active']},
+      /* ── Settings ── */
+      {
+        id: 'job_categories', name: 'Job categories', cat: 'settings',
+        desc: 'All job categories with statuses — GET /jobs/category', ic: '#F1EFE8', ico: '#5F5E5A',
+        ep: '/jobs/category', detailEp: null, uidField: 'category_uid',
+        staticParams: { populate_statuses: 'true' },
+        svg: '<path d="M4 6h16M4 12h16M4 18h7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['category_uid', 'job_category_name', 'name', 'color', 'statuses', 'is_active', 'created_at']
+      },
 
-  {id:'forms',name:'Inspection forms',cat:'settings',
-   desc:'Service task forms & sections',ic:'#FAEEDA',ico:'#854F0B',
-   ep:'/forms',detailEp:'/forms/{uid}',uidField:'form_uid',
-   svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['form_uid','form_name','sections','job_type','is_active']},
+      {
+        id: 'job_status_by_category',
+        name: 'Job statuses by category',
+        cat: 'settings',
 
-  {id:'jobstatuses',name:'Job statuses',cat:'settings',
-   desc:'Custom statuses & sub-statuses',ic:'#E6F1FB',ico:'#185FA5',
-   ep:'/jobstatuses',detailEp:null,uidField:'status_uid',
-   svg:'<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['status_uid','status_name','color','status_type','sub_statuses']},
+        ep: '/jobs/category',   
 
-  {id:'customfields',name:'Custom fields',cat:'settings',
-   desc:'Account-level field configuration',ic:'#EEEDFE',ico:'#534AB7',
-   ep:'/customfields',detailEp:null,uidField:'custom_field_uid',
-   svg:'<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['custom_field_uid','field_name','label','field_type','module','is_required','options']},
+        requiresParams: true,
 
-  {id:'workflows',name:'Workflows',cat:'settings',
-   desc:'Automation rules & triggers',ic:'#F1EFE8',ico:'#5F5E5A',
-   ep:'/workflows',detailEp:null,uidField:'workflow_uid',
-   svg:'<path d="M5 3l14 9-14 9V3z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['workflow_uid','workflow_name','trigger_event','is_active','created_at']},
+        paramDefs: [{
+          id: 'category_uid',
+          label: 'Job category',
+          loadsFrom: 'job_categories',
+          valueField: 'category_uid',
+          labelField: 'job_category_name||name'
+        }],
 
-  {id:'skills',name:'Skills',cat:'settings',
-   desc:'Technician skill tags & sets',ic:'#E1F5EE',ico:'#0F6E56',
-   ep:'/skills',detailEp:null,uidField:'skill_uid',
-   svg:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['skill_uid','skill_name','skill_set','users']},
+        
+        params: (p) => ({
+          populate_statuses: true,
+          'filter.category_uid': p.category_uid
+        }),
 
-  {id:'territories',name:'Territories',cat:'settings',
-   desc:'Geographic zones & assignments',ic:'#FAECE7',ico:'#993C1D',
-   ep:'/territories',detailEp:null,uidField:'territory_uid',
-   svg:'<circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 2a8 8 0 010 16c-4 0-8-3.58-8-8a8 8 0 0116 0z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-   priority:['territory_uid','territory_name','is_active']},
-];
+        uidField: 'status_uid',
 
-let auth=null,amod=null,acat='all',rawList=[],flatData=[],allCols=[],visCols=[],maxStep=1,previewSize=50;
+        priority: [
+          'status_uid',
+          'status_name',
+          'name',
+          'color',
+          'category',
+          'sub_statuses',
+          'is_active'
+        ]
+    },
 
-/* ── Nav ── */
-function goStep(n){
-  if(n>maxStep)return;
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('p'+n).classList.add('active');
-  ['si1','si2','si3'].forEach((id,i)=>{
-    const el=document.getElementById(id);
-    el.classList.remove('active','done','locked');
-    if(i+1===n)el.classList.add('active');
-    else if(i+1<n)el.classList.add('done');
-    else el.classList.add('locked');
-  });
-}
-function adv(n){if(n>maxStep)maxStep=n;goStep(n);}
+      {
+        id: 'jobtypes', name: 'Job types', cat: 'settings',
+        desc: 'Job categories + checklists & forms', ic: '#F1EFE8', ico: '#5F5E5A',
+        ep: '/jobtypes', detailEp: null, uidField: 'job_type_uid',
+        svg: '<path d="M4 6h16M4 12h16M4 18h7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['job_type_uid', 'job_type_name', 'color', 'default_duration', 'checklists', 'forms', 'is_active']
+      },
 
-/* ── Auth ── */
-let kv=false;
-function toggleKey(){kv=!kv;document.getElementById('ak').type=kv?'text':'password';document.getElementById('eic').style.opacity=kv?'0.3':'1';}
+      {
+        id: 'checklist_by_status',
+        name: 'Checklists',
+        cat: 'settings',
 
-async function doConnect(){
-  const key=document.getElementById('ak').value.trim();
-  const base=document.getElementById('rg').value;
-  document.getElementById('cerr').style.display='none';
-  const btn=document.getElementById('cb');
-  if(!key){showErr('Please enter your API key.');return;}
-  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Connecting…';
-  try{
-    const r=await fetch(base+'user/company',{headers:{'x-api-key':key}});
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.message||d.error||'Authentication failed — check your key and region.');
-    const co=d.data?.company_name||d.company_name||d.name||'Connected';
-    auth={apiKey:key,baseUrl:base,companyName:co};
-    const hc=document.getElementById('hconn');
-    hc.className='hconn on';
-    hc.innerHTML=`<span class="hdot"></span><span>${co}</span><span class="hdis" onclick="doDisc()">Disconnect</span>`;
-    renderMods();adv(2);
-  }catch(e){showErr(e.message||'Could not reach Zuper. Check your region or network.');}
-  finally{btn.disabled=false;btn.innerHTML='Connect workspace';}
-}
-function showErr(m){document.getElementById('cerrmsg').textContent=m;document.getElementById('cerr').style.display='flex';}
-function doDisc(){
-  auth=null;amod=null;rawList=[];flatData=[];maxStep=1;activeParams={};paramChoices={};
-  document.getElementById('ak').value='';
-  document.getElementById('params-panel').style.display='none';
-  const hc=document.getElementById('hconn');hc.className='hconn off';hc.innerHTML='<span class="hdot"></span><span>Not connected</span>';
-  goStep(1);
-}
+        desc: 'Checklists by category & status',
 
-/* ── Module grid ── */
-function filt(el,cat){
-  acat=cat;document.querySelectorAll('.mf').forEach(c=>c.classList.remove('on'));el.classList.add('on');renderMods();
-}
-function renderMods(){
-  const list=acat==='all'?MODS:MODS.filter(m=>m.cat===acat);
-  document.getElementById('mg').innerHTML=list.map(m=>`
-    <div class="mc ${amod===m.id?'active':''}" onclick="selMod('${m.id}')">
+        ep: '/settings/checklist',   
+
+        requiresParams: true,
+
+        paramDefs: [
+          {
+            id: 'category_uid',
+            label: 'Job category',
+            hint: 'Select a job category',
+            loadsFrom: 'job_categories',
+            valueField: 'category_uid',
+            labelField: 'job_category_name||name'
+          },
+          {
+            id: 'job_status_uid',
+            label: 'Job status',
+            hint: 'Select a status',
+            loadsFrom: 'job_status_by_category',
+            valueField: 'status_uid',
+            labelField: 'status_name||name',
+            dependsOn: 'category_uid'
+          }
+        ],
+
+      
+        params: (p) => ({
+          category_uid: p.category_uid,
+          job_status_uid: p.job_status_uid
+        }),
+
+        uidField: 'checklist_uid',
+
+        priority: [
+          'checklist_uid',
+          'checklist_name',
+          'name',
+          'checklist_items',
+          'is_active'
+        ]
+  },
+
+      {
+        id: 'forms', name: 'Inspection forms', cat: 'settings',
+        desc: 'Service task forms & sections', ic: '#FAEEDA', ico: '#854F0B',
+        ep: '/forms', detailEp: '/forms/{uid}', uidField: 'form_uid',
+        svg: '<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['form_uid', 'form_name', 'sections', 'job_type', 'is_active']
+      },
+
+      {
+        id: 'jobstatuses',
+        name: 'Job statuses',
+        cat: 'settings',
+        desc: 'Custom statuses & sub-statuses',
+        ic: '#E6F1FB',
+        ico: '#185FA5',
+
+        ep: '/jobs/status',   
+
+        detailEp: null,
+        uidField: 'status_uid',
+
+        priority: [
+          'status_uid', 'status_name', 'color',
+          'status_type', 'sub_statuses'
+        ]
+      },
+
+    { 
+        id:'customfields',
+        name:'Custom fields',
+        cat:'settings',
+        desc:'Account-level field configuration',
+        ic:'#EEEDFE',
+        ico:'#534AB7',
+
+        ep:'/settings/custom_fields',   
+
+        detailEp:null,
+        uidField:'custom_field_uid',
+
+        // ADD PARAMS (IMPORTANT)
+        params: {
+          module_name: 'JOB',
+          sort: 'ASC',
+          sort_by: 'display_order'
+        },
+
+        priority:[
+          'custom_field_uid','field_name','label',
+          'field_type','module','is_required','options'
+        ]
+    },
+
+      {
+        id: 'workflows', name: 'Workflows', cat: 'settings',
+        desc: 'Automation rules & triggers', ic: '#F1EFE8', ico: '#5F5E5A',
+        ep: '/workflows', detailEp: null, uidField: 'workflow_uid',
+        svg: '<path d="M5 3l14 9-14 9V3z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['workflow_uid', 'workflow_name', 'trigger_event', 'is_active', 'created_at']
+      },
+
+      {
+        id: 'skills', name: 'Skills', cat: 'settings',
+        desc: 'Technician skill tags & sets', ic: '#E1F5EE', ico: '#0F6E56',
+        ep: '/skills', detailEp: null, uidField: 'skill_uid',
+        svg: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['skill_uid', 'skill_name', 'skill_set', 'users']
+      },
+
+      {
+        id: 'territories', name: 'Territories', cat: 'settings',
+        desc: 'Geographic zones & assignments', ic: '#FAECE7', ico: '#993C1D',
+        ep: '/territories', detailEp: null, uidField: 'territory_uid',
+        svg: '<circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 2a8 8 0 010 16c-4 0-8-3.58-8-8a8 8 0 0116 0z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+        priority: ['territory_uid', 'territory_name', 'is_active']
+      },
+    ];
+
+    let auth = null, amod = null, acat = 'all', rawList = [], flatData = [], allCols = [], visCols = [], maxStep = 1, previewSize = 50;
+
+    /* ── Nav ── */
+    function goStep(n) {
+      if (n > maxStep) return;
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('p' + n).classList.add('active');
+      ['si1', 'si2', 'si3'].forEach((id, i) => {
+        const el = document.getElementById(id);
+        el.classList.remove('active', 'done', 'locked');
+        if (i + 1 === n) el.classList.add('active');
+        else if (i + 1 < n) el.classList.add('done');
+        else el.classList.add('locked');
+      });
+    }
+    function adv(n) { if (n > maxStep) maxStep = n; goStep(n); }
+
+    /* ── Auth ── */
+    let kv = false;
+    function toggleKey() { kv = !kv; document.getElementById('ak').type = kv ? 'text' : 'password'; document.getElementById('eic').style.opacity = kv ? '0.3' : '1'; }
+
+    async function doConnect() {
+      const key = document.getElementById('ak').value.trim();
+      const base = document.getElementById('rg').value;
+      document.getElementById('cerr').style.display = 'none';
+      const btn = document.getElementById('cb');
+      if (!key) { showErr('Please enter your API key.'); return; }
+      btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Connecting…';
+      try {
+        const r = await fetch(base + 'user/company', { headers: { 'x-api-key': key } });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.message || d.error || 'Authentication failed — check your key and region.');
+        const co = d.data?.company_name || d.company_name || d.name || 'Connected';
+        auth = { apiKey: key, baseUrl: base, companyName: co };
+        const hc = document.getElementById('hconn');
+        hc.className = 'hconn on';
+        hc.innerHTML = `<span class="hdot"></span><span>${co}</span><span class="hdis" onclick="doDisc()">Disconnect</span>`;
+        renderMods(); adv(2);
+      } catch (e) { showErr(e.message || 'Could not reach Zuper. Check your region or network.'); }
+      finally { btn.disabled = false; btn.innerHTML = 'Connect workspace'; }
+    }
+    function showErr(m) { document.getElementById('cerrmsg').textContent = m; document.getElementById('cerr').style.display = 'flex'; }
+    function doDisc() {
+      auth = null; amod = null; rawList = []; flatData = []; maxStep = 1; activeParams = {}; paramChoices = {};
+      document.getElementById('ak').value = '';
+      document.getElementById('params-panel').style.display = 'none';
+      const hc = document.getElementById('hconn'); hc.className = 'hconn off'; hc.innerHTML = '<span class="hdot"></span><span>Not connected</span>';
+      goStep(1);
+    }
+
+    /* ── Module grid ── */
+    function filt(el, cat) {
+      acat = cat; document.querySelectorAll('.mf').forEach(c => c.classList.remove('on')); el.classList.add('on'); renderMods();
+    }
+    function renderMods() {
+      const list = acat === 'all' ? MODS : MODS.filter(m => m.cat === acat);
+      document.getElementById('mg').innerHTML = list.map(m => `
+    <div class="mc ${amod === m.id ? 'active' : ''}" onclick="selMod('${m.id}')">
       <div class="mi" style="background:${m.ic}"><svg viewBox="0 0 24 24" fill="none" style="color:${m.ico}">${m.svg}</svg></div>
       <div class="mn">${m.name}</div>
       <div class="md">${m.desc}</div>
       <div class="ep-tag">/api${m.ep}</div>
     </div>`).join('');
-  updFR();
-}
-function selMod(id){
-  amod=id;
-  activeParams={};
-  renderMods();
-  const m=MODS.find(x=>x.id===id);
-  if(m?.requiresParams){
-    renderParamsPanel(m);
-  } else {
-    document.getElementById('params-panel').style.display='none';
-  }
-}
-
-function updFR(){
-  const fr=document.getElementById('frow');const ft=document.getElementById('frowt');
-  if(amod){
-    const m=MODS.find(x=>x.id===amod);
-    fr.style.display='flex';
-    ft.innerHTML=`Selected: <strong>${m.name}</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:4px">/api${m.ep}</code>`;
-  } else {
-    fr.style.display='none';
-  }
-}
-
-/* ── Params panel — for modules needing filter UIDs before fetch ── */
-let activeParams = {};
-let paramChoices = {}; // cache loaded dropdown options
-
-async function renderParamsPanel(m){
-  const panel = document.getElementById('params-panel');
-  const title = document.getElementById('params-title');
-  const fields = document.getElementById('params-fields');
-  panel.style.display = 'block';
-  title.textContent = `Configure filters for ${m.name}`;
-
-  // Build each param field
-  let html = '';
-  for(const pd of m.paramDefs){
-    const disabled = pd.dependsOn && !activeParams[pd.dependsOn];
-    html += `<div class="param-row">
-      <label class="param-label">${pd.label}</label>
-      <select class="param-select" id="param-${pd.id}" onchange="onParamChange('${m.id}','${pd.id}',this.value)" ${disabled?'disabled':''}>
-        <option value="">— ${disabled?`pick ${pd.dependsOn.replace('_',' ')} first`:'loading…'} —</option>
-      </select>
-    </div>
-    <div class="param-row"><div></div><div class="param-hint">${pd.hint}</div></div>`;
-  }
-  fields.innerHTML = html;
-
-  // Load options for first param (independent ones)
-  for(const pd of m.paramDefs){
-    if(!pd.dependsOn){
-      await loadParamOptions(m, pd);
+      updFR();
     }
-  }
-}
+    // function selMod(id) {
+    //   amod = id;
+    //   activeParams = {};
+    //   renderMods();
+    //   const m = MODS.find(x => x.id === id);
+    //   if (m?.requiresParams) {
+    //     renderParamsPanel(m);
+    //   } else {
+    //     document.getElementById('params-panel').style.display = 'none';
+    //   }
+    // }
 
-async function loadParamOptions(m, pd){
-  const sel = document.getElementById(`param-${pd.id}`);
-  if(!sel) return;
-  sel.innerHTML = '<option value="">Loading…</option>';
-  sel.disabled = true;
+      function selMod(id) {
+          amod = id;
+          activeParams = {};
+          renderMods();
 
-  try {
-    // Fetch the source module data
-    const srcMod = MODS.find(x => x.id === pd.loadsFrom);
-    let records = [];
-    if(srcMod){
-      const ep = srcMod.ep.replace(/^\//,'');
-      const params = srcMod.staticParams || {};
-      // If loadsFrom depends on a parent param, add it to the path
-      if(pd.dependsOn && activeParams[pd.dependsOn]){
-        const parentVal = activeParams[pd.dependsOn];
-        const builtEp = srcMod.buildEp ? srcMod.buildEp({[pd.dependsOn]: parentVal}) : `${ep}/${parentVal}`;
-        const raw = await zuperFetch(builtEp.replace(/^\//,''), {});
-        records = extractArr(raw);
+          const m = MODS.find(x => x.id === id);
+
+          if (m?.requiresParams) {
+            renderParamsPanel(m);
+
+            // 👇 NEW: disable fetch until params selected
+            document.getElementById('fetch-btn').disabled = true;
+          } else {
+            document.getElementById('params-panel').style.display = 'none';
+            document.getElementById('fetch-btn').disabled = false;
+          }
+      }
+
+    function updFR() {
+      const fr = document.getElementById('frow'); const ft = document.getElementById('frowt');
+      if (amod) {
+        const m = MODS.find(x => x.id === amod);
+        fr.style.display = 'flex';
+        ft.innerHTML = `Selected: <strong>${m.name}</strong> <code style="font-family:var(--mono);font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:4px">/api${m.ep}</code>`;
       } else {
-        const raw = await zuperFetch(ep, params);
-        records = extractArr(raw);
+        fr.style.display = 'none';
       }
     }
 
-    if(!records.length){
-      sel.innerHTML = '<option value="">No options found</option>';
-      sel.disabled = false;
-      return;
+    /* ── Params panel — for modules needing filter UIDs before fetch ── */
+    let activeParams = {};
+    let paramChoices = {}; // cache loaded dropdown options
+
+    async function renderParamsPanel(m) {
+      const panel = document.getElementById('params-panel');
+      const title = document.getElementById('params-title');
+      const fields = document.getElementById('params-fields');
+      panel.style.display = 'block';
+      title.textContent = `Configure filters for ${m.name}`;
+
+      // Build each param field
+      let html = '';
+      for (const pd of m.paramDefs) {
+        const disabled = pd.dependsOn && !activeParams[pd.dependsOn];
+        html += `<div class="param-row">
+      <label class="param-label">${pd.label}</label>
+      <select class="param-select" id="param-${pd.id}" onchange="onParamChange('${m.id}','${pd.id}',this.value)" ${disabled ? 'disabled' : ''}>
+        <option value="">— ${disabled ? `pick ${pd.dependsOn.replace('_', ' ')} first` : 'loading…'} —</option>
+      </select>
+    </div>
+    <div class="param-row"><div></div><div class="param-hint">${pd.hint}</div></div>`;
+      }
+      fields.innerHTML = html;
+
+      // Load options for first param (independent ones)
+      for (const pd of m.paramDefs) {
+        if (!pd.dependsOn) {
+          await loadParamOptions(m, pd);
+        }
+      }
     }
 
-    // Cache for dependent params
-    paramChoices[pd.id] = records;
-
-    // Build options using labelField (supports || fallback)
-    sel.innerHTML = '<option value="">— Select —</option>' + records.map(r => {
-      const val = r[pd.valueField] || r.uid || '';
-      const labelFields = pd.labelField.split('||');
-      const lbl = labelFields.map(f => r[f.trim()]).find(v => v) || val;
-      return `<option value="${val}">${lbl}</option>`;
-    }).join('');
-    sel.disabled = false;
-
-  } catch(e){
-    sel.innerHTML = `<option value="">Error: ${e.message}</option>`;
-    sel.disabled = false;
-  }
-}
-
-async function onParamChange(modId, paramId, value){
-  activeParams[paramId] = value;
-  const m = MODS.find(x => x.id === modId);
-  if(!m) return;
-
-  // Load any params that depend on this one
-  for(const pd of m.paramDefs){
-    if(pd.dependsOn === paramId){
+    async function loadParamOptions(m, pd) {
       const sel = document.getElementById(`param-${pd.id}`);
-      if(value){
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Loading…</option>';
+      sel.disabled = true;
+
+      try {
+        // Fetch the source module data
+        const srcMod = MODS.find(x => x.id === pd.loadsFrom);
+        let records = [];
+        if (srcMod) {
+          const ep = srcMod.ep.replace(/^\//, '');
+          const params = srcMod.staticParams || {};
+          // If loadsFrom depends on a parent param, add it to the path
+          if (pd.dependsOn && activeParams[pd.dependsOn]) {
+            const parentVal = activeParams[pd.dependsOn];
+            const builtEp = srcMod.buildEp
+              ? srcMod.buildEp({ [pd.dependsOn]: parentVal })
+              : ep;            
+            const raw = await zuperFetch(builtEp.replace(/^\//, ''), {});
+            records = extractArr(raw);
+          } else {
+            const raw = await zuperFetch(ep, params);
+            records = extractArr(raw);
+          }
+        }
+
+        if (!records.length) {
+          sel.innerHTML = '<option value="">No options found</option>';
+          sel.disabled = false;
+          return;
+        }
+
+        // Cache for dependent params
+        paramChoices[pd.id] = records;
+
+        // Build options using labelField (supports || fallback)
+        sel.innerHTML = '<option value="">— Select —</option>' + records.map(r => {
+          const val = r[pd.valueField] || r.uid || '';
+          const labelFields = pd.labelField.split('||');
+          const lbl = labelFields.map(f => r[f.trim()]).find(v => v) || val;
+          return `<option value="${val}">${lbl}</option>`;
+        }).join('');
+        sel.disabled = false;
+
+      } catch (e) {
+        sel.innerHTML = `<option value="">Error: ${e.message}</option>`;
+        sel.disabled = false;
+      }
+    }
+
+    // async function onParamChange(modId, paramId, value) {
+    //   activeParams[paramId] = value;
+    //   const m = MODS.find(x => x.id === modId);
+    //   if (!m) return;
+
+    //   // Load any params that depend on this one
+    //   for (const pd of m.paramDefs) {
+    //     if (pd.dependsOn === paramId) {
+    //       const sel = document.getElementById(`param-${pd.id}`);
+    //       if (value) {
+    //         await loadParamOptions(m, pd);
+    //       } else {
+    //         if (sel) { sel.innerHTML = '<option value="">— pick above first —</option>'; sel.disabled = true; }
+    //         delete activeParams[pd.id];
+    //       }
+    //     }
+    //   }
+    // }
+    async function onParamChange(modId, paramId, value) {
+  activeParams[paramId] = value;
+
+  const m = MODS.find(x => x.id === modId);
+
+  // existing logic
+  for (const pd of m.paramDefs) {
+    if (pd.dependsOn === paramId) {
+      const sel = document.getElementById(`param-${pd.id}`);
+      if (value) {
         await loadParamOptions(m, pd);
       } else {
-        if(sel){ sel.innerHTML = '<option value="">— pick above first —</option>'; sel.disabled = true; }
+        if (sel) {
+          sel.innerHTML = '<option value="">— pick above first —</option>';
+          sel.disabled = true;
+        }
         delete activeParams[pd.id];
       }
     }
   }
+
+  // 👇 NEW: enable fetch only if all params selected
+  const allFilled = m.paramDefs.every(p => activeParams[p.id]);
+  document.getElementById('fetch-btn').disabled = !allFilled;
 }
 
-/* ── Proxy call ── all Zuper API requests go through here ───────
-   On Netlify: routes via /.netlify/functions/proxy (fixes CORS).
-   Fallback: if proxy isn't deployed yet (local dev / 404), hits
-   Zuper directly — works for modules that allow browser CORS.
-─────────────────────────────────────────────────────────────── */
-async function zuperFetch(endpoint, params){
-  const qs = (params && Object.keys(params).length)
-    ? '?' + Object.entries(params)
-        .filter(([,v]) => v !== undefined && v !== null && v !== '')
-        .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join('&')
-    : '';
+    /* ── Proxy call ── all Zuper API requests go through here ───────
+       On Netlify: routes via /.netlify/functions/proxy (fixes CORS).
+       Fallback: if proxy isn't deployed yet (local dev / 404), hits
+       Zuper directly — works for modules that allow browser CORS.
+    ─────────────────────────────────────────────────────────────── */
+    async function zuperFetch(endpoint, params) {
+      const qs = (params && Object.keys(params).length)
+        ? '?' + Object.entries(params)
+          .filter(([, v]) => v !== undefined && v !== null && v !== '')
+          .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+          .join('&')
+        : '';
 
-  const body = {endpoint, apiKey: auth.apiKey, region: auth.baseUrl, params: params||{}};
-  const r = await fetch('/.netlify/functions/proxy', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body)
-  });
-  if(!r.ok){
-    let errMsg = 'Proxy error ' + r.status;
-    try { const j = await r.json(); errMsg = j.error || errMsg; } catch{}
-    throw new Error(errMsg);
-  }
-  const wrapper = await r.json();
-  if(!wrapper.ok) throw new Error('Zuper API error ' + wrapper.status + ': ' + (wrapper.data?.message || wrapper.data?.error || ''));
-  return wrapper.data;
-}
+      const body = { endpoint, apiKey: auth.apiKey, region: auth.baseUrl, params: params || {} };
+      const r = await fetch('/.netlify/functions/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) {
+        let errMsg = 'Proxy error ' + r.status;
+        try { const j = await r.json(); errMsg = j.error || errMsg; } catch { }
+        throw new Error(errMsg);
+      }
+      const wrapper = await r.json();
+      if (!wrapper.ok) throw new Error('Zuper API error ' + wrapper.status + ': ' + (wrapper.data?.message || wrapper.data?.error || ''));
+      return wrapper.data;
+    }
 
-/* ── Extract array from any Zuper response shape ────────────────
-   Handles: { data:[...] }  { data:{rows:[...]} }
-            { type, data:{ jobs:[...] } }  and top-level arrays
-─────────────────────────────────────────────────────────────── */
-function extractArr(d){
-  if(!d) return [];
-  if(Array.isArray(d)) return d;
+    /* ── Extract array from any Zuper response shape ────────────────
+       Handles: { data:[...] }  { data:{rows:[...]} }
+                { type, data:{ jobs:[...] } }  and top-level arrays
+    ─────────────────────────────────────────────────────────────── */
+    function extractArr(d) {
+      if (!d) return [];
+      if (Array.isArray(d)) return d;
 
-  // Unwrap one level: { type, data: <actual payload> }
-  const payload = (d.data !== undefined) ? d.data : d;
+      // Unwrap one level: { type, data: <actual payload> }
+      const payload = (d.data !== undefined) ? d.data : d;
 
-  if(Array.isArray(payload)) return payload;
+      if (Array.isArray(payload)) return payload;
 
-  // Paginated shape: { rows: [...] }
-  if(payload?.rows && Array.isArray(payload.rows)) return payload.rows;
+      // Paginated shape: { rows: [...] }
+      if (payload?.rows && Array.isArray(payload.rows)) return payload.rows;
 
-  // Named-key shape: { jobs: [...] } etc.
-  const namedKeys = ['jobs','customers','users','products','assets','invoices',
-    'estimates','teams','timesheets','properties','organizations','service_contracts',
-    'requests','recurring_jobs','checklists','forms','jobtypes','jobstatuses',
-    'customfields','workflows','skills','territories','data'];
-  for(const k of namedKeys){
-    if(payload?.[k] && Array.isArray(payload[k])) return payload[k];
-  }
+      // Named-key shape: { jobs: [...] } etc.
+      const namedKeys = ['jobs', 'customers', 'users', 'products', 'assets', 'invoices',
+        'estimates', 'teams', 'timesheets', 'properties', 'organizations', 'service_contracts',
+        'requests', 'recurring_jobs', 'checklists', 'forms', 'jobtypes', 'jobstatuses',
+        'customfields', 'workflows', 'skills', 'territories', 'data'];
+      for (const k of namedKeys) {
+        if (payload?.[k] && Array.isArray(payload[k])) return payload[k];
+      }
 
-  // Double-wrapped: { data: { data: [...] } }
-  if(payload?.data && Array.isArray(payload.data)) return payload.data;
+      // Double-wrapped: { data: { data: [...] } }
+      if (payload?.data && Array.isArray(payload.data)) return payload.data;
 
-  return [];
-}
-
-/* ── Fetch one page via proxy (or direct fallback) ── */
-async function fetchPage(ep, page, pageSize){
-  const params = {page, rows: pageSize};
-  try {
-    const raw = await zuperFetch(ep, params);
-    const records = extractArr(raw);
-    return records;
-  } catch(e){
-    // Treat Zuper 4xx/5xx as end-of-pagination, not a fatal error
-    const msg = e.message || '';
-    if(msg.includes('Zuper 4') || msg.includes('Zuper 5') || msg.includes('500') || msg.includes('400')){
       return [];
     }
-    throw e;
-  }
-}
 
-/* ── Main fetch (preview: first page) ── */
-async function doFetch(){
-  if(!amod||!auth)return;
-  const m=MODS.find(x=>x.id===amod);
-
-  // Validate required params
-  if(m.requiresParams && m.paramDefs){
-    const missing = m.paramDefs.filter(pd => !activeParams[pd.id]);
-    if(missing.length){
-      setBanners([{type:'w',msg:`Please select: ${missing.map(pd=>pd.label).join(', ')}`}]);
-      return;
+    /* ── Fetch one page via proxy (or direct fallback) ── */
+    async function fetchPage(ep, page, pageSize) {
+      const params = { page, rows: pageSize };
+      try {
+        const raw = await zuperFetch(ep, params);
+        const records = extractArr(raw);
+        return records;
+      } catch (e) {
+        // Treat Zuper 4xx/5xx as end-of-pagination, not a fatal error
+        const msg = e.message || '';
+        if (msg.includes('Zuper 4') || msg.includes('Zuper 5') || msg.includes('500') || msg.includes('400')) {
+          return [];
+        }
+        throw e;
+      }
     }
+
+    
+    async function doFetch() {
+      if (!amod || !auth) return;
+
+      const m = MODS.find(x => x.id === amod);
+
+      
+      if (m.requiresParams && m.paramDefs) {
+        const missing = m.paramDefs.filter(pd => !activeParams[pd.id]);
+        if (missing.length) {
+          setBanners([{ type: 'w', msg: `Please select: ${missing.map(pd => pd.label).join(', ')}` }]);
+          return;
+        }
+      }
+
+      setBanners([]);
+
+    
+      let resolvedEp = m.buildEp
+        ? m.buildEp(activeParams)
+        : m.ep;
+
+    
+      const ep = resolvedEp.replace(/^\//, '');
+
+    
+      let params = {};
+      if (typeof m.params === 'function') {
+        params = m.params(activeParams);
+      } else if (m.params) {
+        params = m.params;
+      } else if (m.staticParams) {
+        params = m.staticParams;
+      }
+
+      
+      if (m.supportsPagination) {
+        params.page = 0;
+        params.rows = previewSize;
+      }
+
+      // UI loading
+      document.getElementById('tc').innerHTML =
+        `<div class="es"><span class="spin spin-d"></span>Fetching ${m.name}…</div>`;
+      document.getElementById('dmeta').textContent = 'Fetching…';
+      document.getElementById('ebs').innerHTML = '';
+      document.getElementById('cts').innerHTML = '';
+      document.getElementById('rawsec').innerHTML = '';
+      document.getElementById('prog').style.display = 'none';
+
+      adv(3);
+
+      let records = [];
+
+      try {
+        const raw = await zuperFetch(ep, params);
+        records = extractArr(raw);
+      } catch (e) {
+        const msg = e.message || '';
+
+        document.getElementById('tc').innerHTML =
+          `<div class="es">Error: ${msg}</div>`;
+        document.getElementById('dmeta').textContent = 'Error';
+
+        setBanners([{ type: 'd', msg: `${m.name}: ${msg}` }]);
+        return;
+      }
+
+
+      if (!records.length) {
+        document.getElementById('dmeta').innerHTML =
+          `<strong>0 records</strong> from ${m.name}`;
+
+        document.getElementById('tc').innerHTML =
+          '<div class="es">No records returned. Check params or endpoint.</div>';
+
+        setBanners([{
+          type: 'w',
+          msg: `No records at /api/${ep}`
+        }]);
+
+        return;
+      }
+
+      rawList = records;
+      processAndRender(m, records);
   }
+    function processAndRender(m, records) {
+      flatData = records.map(r => flatten(r));
 
-  setBanners([]);
-  // Resolve the actual endpoint (may include UID in path)
-  const resolvedEp = m.buildEp ? m.buildEp(activeParams) : m.ep;
-  // Resolve any extra query params
-  const extraParams = m.buildParams ? m.buildParams(activeParams) : (m.staticParams || {});
+      // Collect all keys
+      const keySet = new Set();
+      flatData.forEach(r => Object.keys(r).forEach(k => keySet.add(k)));
+      allCols = [...keySet];
 
-  document.getElementById('tc').innerHTML=`<div class="es"><span class="spin spin-d"></span>Fetching ${m.name}…</div>`;
-  document.getElementById('dmeta').textContent='Fetching…';
-  document.getElementById('ebs').innerHTML='';
-  document.getElementById('cts').innerHTML='';
-  document.getElementById('rawsec').innerHTML='';
-  document.getElementById('prog').style.display='none';
-  adv(3);
+      // Sort: priority first
+      const prio = m.priority || [];
+      allCols.sort((a, b) => {
+        const ai = prio.findIndex(p => a === p || a.startsWith(p + '.'));
+        const bi = prio.findIndex(p => b === p || b.startsWith(p + '.'));
+        if (ai >= 0 && bi >= 0) return ai - bi;
+        if (ai >= 0) return -1;
+        if (bi >= 0) return 1;
+        return a.localeCompare(b);
+      });
 
-  let records=[];
-  try{
-    const ep = resolvedEp.replace(/^\//,'');
-    const params = {...extraParams, page:0, rows:previewSize};
-    const raw = await zuperFetch(ep, params);
-    records = extractArr(raw);
-  }catch(e){
-    const msg=e.message||'';
-    const hint=msg.includes('Proxy error')
-      ? msg
-      : msg;
-    document.getElementById('tc').innerHTML=`<div class="es">Error: ${hint}</div>`;
-    document.getElementById('dmeta').textContent='Error';
-    setBanners([{type:'d',msg:`${m.name}: ${hint}`}]);
-    return;
-  }
+      // Default visible cols: priority keys that exist, max 12
+      visCols = allCols.filter(k => prio.some(p => k === p || k.startsWith(p + '.'))).slice(0, 12);
+      if (!visCols.length) visCols = allCols.slice(0, 10);
 
-  if(!records.length){
-    document.getElementById('dmeta').innerHTML=`<strong>0 records</strong> from ${m.name}`;
-    document.getElementById('tc').innerHTML='<div class="es">No records returned. The module may be empty, or check the raw JSON inspector after retrying.</div>';
-    setBanners([{type:'w',msg:`No records at /api${resolvedEp} — module may be empty or the endpoint path may differ for this account.`}]);
-    return;
-  }
+      // Check if names are empty — offer enrichment if detail endpoint exists
+      const hasNames = flatData.slice(0, 5).some(r =>
+        (r['first_name'] && r['first_name'] !== '') ||
+        (r['customer_name'] && r['customer_name'] !== '') ||
+        (r['job_title'] && r['job_title'] !== '')
+      );
+      const banners = [];
+      if (!hasNames && m.detailEp) {
+        banners.push({ type: 'i', msg: `This endpoint returns IDs and timestamps in list mode. Click "Load full details" to enrich ${Math.min(rawList.length, 20)} records with names and full fields.` });
+      }
+      setBanners(banners);
 
-  rawList=records;
-  processAndRender(m,records);
-}
+      document.getElementById('dmeta').innerHTML = `<strong>${records.length} records</strong> loaded <em>· ${allCols.length} fields found · showing ${Math.min(records.length, previewSize)}</em>`;
+      renderCols();
+      renderTable();
+      renderEBs(m);
+      renderRaw(records[0]);
+    }
 
-function processAndRender(m,records){
-  flatData=records.map(r=>flatten(r));
+    /* ── Detail enrichment ── */
+    async function loadDetails() {
+      const m = MODS.find(x => x.id === amod);
+      if (!m?.detailEp) return;
+      const toEnrich = rawList.slice(0, 20);
+      const prog = document.getElementById('prog');
+      const fill = document.getElementById('prog-fill');
+      prog.style.display = 'block';
+      fill.style.width = '0%';
+      setBanners([{ type: 'i', msg: `Loading full details for ${toEnrich.length} records…` }]);
+      document.getElementById('ebs').innerHTML = '';
 
-  // Collect all keys
-  const keySet=new Set();
-  flatData.forEach(r=>Object.keys(r).forEach(k=>keySet.add(k)));
-  allCols=[...keySet];
+      const enriched = [];
+      for (let i = 0; i < toEnrich.length; i++) {
+        const rec = toEnrich[i];
+        const uid = rec[m.uidField] || rec['uid'];
+        if (uid) {
+          try {
+            const ep = m.detailEp.replace('{uid}', uid);
+            const d = await zuperFetch(ep.replace(/^\//, ''));
+            const detail = d?.data || d?.result || d;
+            enriched.push(typeof detail === 'object' && !Array.isArray(detail) ? detail : rec);
+          } catch (e) { enriched.push(rec); }
+        } else { enriched.push(rec); }
+        fill.style.width = Math.round(((i + 1) / toEnrich.length) * 100) + '%';
+        await new Promise(r => setTimeout(r, 50));// small delay to avoid rate limiting
+      }
 
-  // Sort: priority first
-  const prio=m.priority||[];
-  allCols.sort((a,b)=>{
-    const ai=prio.findIndex(p=>a===p||a.startsWith(p+'.'));
-    const bi=prio.findIndex(p=>b===p||b.startsWith(p+'.'));
-    if(ai>=0&&bi>=0)return ai-bi;
-    if(ai>=0)return-1;
-    if(bi>=0)return 1;
-    return a.localeCompare(b);
-  });
+      prog.style.display = 'none';
+      rawList = enriched;
+      processAndRender(m, enriched);
+      setBanners([{ type: 's', msg: `Full details loaded for ${enriched.length} records.` }]);
+    }
 
-  // Default visible cols: priority keys that exist, max 12
-  visCols=allCols.filter(k=>prio.some(p=>k===p||k.startsWith(p+'.'))).slice(0,12);
-  if(!visCols.length)visCols=allCols.slice(0,10);
-
-  // Check if names are empty — offer enrichment if detail endpoint exists
-  const hasNames=flatData.slice(0,5).some(r=>
-    (r['first_name']&&r['first_name']!=='')||
-    (r['customer_name']&&r['customer_name']!=='')||
-    (r['job_title']&&r['job_title']!=='')
-  );
-  const banners=[];
-  if(!hasNames&&m.detailEp){
-    banners.push({type:'i',msg:`This endpoint returns IDs and timestamps in list mode. Click "Load full details" to enrich ${Math.min(rawList.length,20)} records with names and full fields.`});
-  }
-  setBanners(banners);
-
-  document.getElementById('dmeta').innerHTML=`<strong>${records.length} records</strong> loaded <em>· ${allCols.length} fields found · showing ${Math.min(records.length,previewSize)}</em>`;
-  renderCols();
-  renderTable();
-  renderEBs(m);
-  renderRaw(records[0]);
-}
-
-/* ── Detail enrichment ── */
-async function loadDetails(){
-  const m=MODS.find(x=>x.id===amod);
-  if(!m?.detailEp)return;
-  const toEnrich=rawList.slice(0,20);
-  const prog=document.getElementById('prog');
-  const fill=document.getElementById('prog-fill');
-  prog.style.display='block';
-  fill.style.width='0%';
-  setBanners([{type:'i',msg:`Loading full details for ${toEnrich.length} records…`}]);
-  document.getElementById('ebs').innerHTML='';
-
-  const enriched=[];
-  for(let i=0;i<toEnrich.length;i++){
-    const rec=toEnrich[i];
-    const uid=rec[m.uidField]||rec['uid'];
-    if(uid){
-      try{
-        const ep=m.detailEp.replace('{uid}',uid);
-        const d=await zuperFetch(ep.replace(/^\//,''));
-        const detail=d?.data||d?.result||d;
-        enriched.push(typeof detail==='object'&&!Array.isArray(detail)?detail:rec);
-      }catch(e){enriched.push(rec);}
-    }else{enriched.push(rec);}
-    fill.style.width=Math.round(((i+1)/toEnrich.length)*100)+'%';
-    await new Promise(r=>setTimeout(r,50));// small delay to avoid rate limiting
-  }
-
-  prog.style.display='none';
-  rawList=enriched;
-  processAndRender(m,enriched);
-  setBanners([{type:'s',msg:`Full details loaded for ${enriched.length} records.`}]);
-}
-
-/* ── Banners ── */
-function setBanners(list){
-  const el=document.getElementById('banners');
-  el.innerHTML=list.map(b=>`
+    /* ── Banners ── */
+    function setBanners(list) {
+      const el = document.getElementById('banners');
+      el.innerHTML = list.map(b => `
     <div class="bn bn-${b.type}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        ${b.type==='i'?'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>':
-          b.type==='w'?'<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>':
-          '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'}
+        ${b.type === 'i' ? '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>' :
+          b.type === 'w' ? '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' :
+            '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'}
       </svg>
       ${b.msg}
     </div>`).join('');
-}
+    }
 
-/* ── Columns ── */
-function fmtKey(k){return k.split('.').pop().replace(/_/g,' ');}
-function renderCols(){
-  document.getElementById('cts').innerHTML=allCols.map(k=>`
-    <div class="ct ${visCols.includes(k)?'on':''}" onclick="togCT(this,'${k}')" title="${k}">${fmtKey(k)}</div>`).join('');
-}
-function togCT(el,k){
-  el.classList.toggle('on');
-  if(el.classList.contains('on'))visCols.push(k);else visCols=visCols.filter(c=>c!==k);
-  renderTable();
-}
+    /* ── Columns ── */
+    function fmtKey(k) { return k.split('.').pop().replace(/_/g, ' '); }
+    function renderCols() {
+      document.getElementById('cts').innerHTML = allCols.map(k => `
+    <div class="ct ${visCols.includes(k) ? 'on' : ''}" onclick="togCT(this,'${k}')" title="${k}">${fmtKey(k)}</div>`).join('');
+    }
+    function togCT(el, k) {
+      el.classList.toggle('on');
+      if (el.classList.contains('on')) visCols.push(k); else visCols = visCols.filter(c => c !== k);
+      renderTable();
+    }
 
-/* ── Raw inspector ── */
-function renderRaw(rec){
-  document.getElementById('rawsec').innerHTML=`
+    /* ── Raw inspector ── */
+    function renderRaw(rec) {
+      document.getElementById('rawsec').innerHTML = `
     <div class="raw-toggle" onclick="togRaw()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
     <span id="rlbl">Inspect first record's raw JSON</span></div>
-    <div id="rbox" class="raw-box">${JSON.stringify(rec,null,2)}</div>`;
-}
-function togRaw(){
-  const b=document.getElementById('rbox');const l=document.getElementById('rlbl');
-  const show=b.style.display==='none'||!b.style.display;
-  b.style.display=show?'block':'none';
-  l.textContent=show?'Hide raw JSON':'Inspect first record\'s raw JSON';
-}
+    <div id="rbox" class="raw-box">${JSON.stringify(rec, null, 2)}</div>`;
+    }
+    function togRaw() {
+      const b = document.getElementById('rbox'); const l = document.getElementById('rlbl');
+      const show = b.style.display === 'none' || !b.style.display;
+      b.style.display = show ? 'block' : 'none';
+      l.textContent = show ? 'Hide raw JSON' : 'Inspect first record\'s raw JSON';
+    }
 
-/* ── Table ── */
-function stCls(v){const s=String(v).toLowerCase();if(s.includes('open')||s.includes('new')||s.includes('active'))return 'p po';if(s.includes('progress')||s.includes('pending')||s.includes('scheduled'))return 'p pp';if(s.includes('complete')||s.includes('closed')||s.includes('paid'))return 'p pc';return 'p pd';}
-function renderTable(){
-  if(!flatData.length){document.getElementById('tc').innerHTML='<div class="es">No records.</div>';return;}
-  const cols=visCols.length?visCols:allCols.slice(0,10);
-  const preview=flatData.slice(0,previewSize);
-  document.getElementById('tc').innerHTML=`
+    /* ── Table ── */
+    function stCls(v) { const s = String(v).toLowerCase(); if (s.includes('open') || s.includes('new') || s.includes('active')) return 'p po'; if (s.includes('progress') || s.includes('pending') || s.includes('scheduled')) return 'p pp'; if (s.includes('complete') || s.includes('closed') || s.includes('paid')) return 'p pc'; return 'p pd'; }
+    function renderTable() {
+      if (!flatData.length) { document.getElementById('tc').innerHTML = '<div class="es">No records.</div>'; return; }
+      const cols = visCols.length ? visCols : allCols.slice(0, 10);
+      const preview = flatData.slice(0, previewSize);
+      document.getElementById('tc').innerHTML = `
     <table>
-      <thead><tr>${cols.map(k=>`<th title="${k}">${fmtKey(k)}</th>`).join('')}</tr></thead>
-      <tbody>${preview.map(row=>`<tr>${cols.map(k=>{
-        const v=row[k];
-        if(v===''||v===null||v===undefined)return`<td class="null-val">—</td>`;
-        if((k==='color'||k.endsWith('.color'))&&String(v).startsWith('#'))return`<td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${v};display:inline-block"></span>${v}</span></td>`;
-        if(k.toLowerCase().includes('status'))return`<td><span class="${stCls(v)}">${v}</span></td>`;
-        if(k.startsWith('is_'))return`<td><span class="p ${v==='Yes'?'po':'pd'}">${v}</span></td>`;
-        return`<td title="${v}">${v}</td>`;
+      <thead><tr>${cols.map(k => `<th title="${k}">${fmtKey(k)}</th>`).join('')}</tr></thead>
+      <tbody>${preview.map(row => `<tr>${cols.map(k => {
+        const v = row[k];
+        if (v === '' || v === null || v === undefined) return `<td class="null-val">—</td>`;
+        if ((k === 'color' || k.endsWith('.color')) && String(v).startsWith('#')) return `<td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:${v};display:inline-block"></span>${v}</span></td>`;
+        if (k.toLowerCase().includes('status')) return `<td><span class="${stCls(v)}">${v}</span></td>`;
+        if (k.startsWith('is_')) return `<td><span class="p ${v === 'Yes' ? 'po' : 'pd'}">${v}</span></td>`;
+        return `<td title="${v}">${v}</td>`;
       }).join('')}</tr>`).join('')}</tbody>
     </table>
-    ${flatData.length>previewSize?`<div class="tfoot">Showing ${previewSize} of ${flatData.length} in preview — exports fetch <strong>all records</strong> across all pages</div>`:
-      flatData.length===previewSize?`<div class="tfoot">Showing all ${previewSize} records — exports will fetch all pages automatically</div>`:''}`;
-}
+    ${flatData.length > previewSize ? `<div class="tfoot">Showing ${previewSize} of ${flatData.length} in preview — exports fetch <strong>all records</strong> across all pages</div>` :
+          flatData.length === previewSize ? `<div class="tfoot">Showing all ${previewSize} records — exports will fetch all pages automatically</div>` : ''}`;
+    }
 
-/* ── Export buttons ── */
-function renderEBs(m){
-  const hasDetail=m.detailEp&&rawList.length>0;
-  document.getElementById('ebs').innerHTML=`
+    /* ── Export buttons ── */
+    function renderEBs(m) {
+      const hasDetail = m.detailEp && rawList.length > 0;
+      document.getElementById('ebs').innerHTML = `
     <button class="eb pr" onclick="expFull('csv','${m.name}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>CSV</button>
     <button class="eb" onclick="expFull('xlsx','${m.name}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Excel</button>
     <button class="eb" onclick="expFull('json','${m.name}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>JSON</button>
     <button class="eb" id="cpb" onclick="expCopy()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button>
     <button class="eb" onclick="expFull('csv_all','${m.name}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>All fields</button>
-    ${hasDetail?`<button class="eb enrich-btn" onclick="loadDetails()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>Load full details</button>`:''}`;
-}
-
-/* ── Preview size selector ── */
-function setPreview(n){
-  previewSize=n;
-  document.querySelectorAll('.size-btn').forEach(b=>{
-    b.classList.toggle('active', parseInt(b.textContent)===n);
-  });
-  // Re-fetch to load that many records
-  doFetch();
-}
-
-/* ── Paginated full fetch for exports ──────────────────────────
-   Pages through all records via the proxy. Stops when a page
-   returns fewer than PAGE_SIZE records or returns empty/error.
-────────────────────────────────────────────────────────────── */
-async function fetchAllPages(m){
-  const PAGE_SIZE=100;
-  let page=0, all=[];
-  const prog=document.getElementById('prog');
-  const lbl=document.getElementById('prog-label');
-  const fill=document.getElementById('prog-fill');
-  prog.style.display='block';
-  lbl.style.display='block';
-  fill.style.width='3%';
-
-  // Resolve endpoint and base params for this module
-  const resolvedEp=(m.buildEp?m.buildEp(activeParams):m.ep).replace(/^\//,'');
-  const extraParams=m.buildParams?m.buildParams(activeParams):(m.staticParams||{});
-
-  while(true){
-    lbl.textContent=`Fetching page ${page+1}… (${all.length} records so far)`;
-    let records=[];
-    try{
-      const params={...extraParams, page, rows:PAGE_SIZE};
-      const raw=await zuperFetch(resolvedEp, params);
-      records=extractArr(raw);
-    }catch(e){
-      const msg=e.message||'';
-      if(msg.includes('Zuper 4')||msg.includes('Zuper 5')||msg.includes('500')||msg.includes('400')){break;}
-      console.warn('Pagination stopped at page',page,msg);
-      break;
+    ${hasDetail ? `<button class="eb enrich-btn" onclick="loadDetails()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>Load full details</button>` : ''}`;
     }
-    if(!records.length) break;
-    all=all.concat(records);
-    const pct=Math.min(92, 3+Math.log2(page+2)*20);
-    fill.style.width=pct+'%';
-    if(records.length<PAGE_SIZE) break;
-    page++;
-    await new Promise(r=>setTimeout(r,150));
-  }
 
-  fill.style.width='100%';
-  lbl.textContent=`Done — ${all.length} total records`;
-  setTimeout(()=>{prog.style.display='none';lbl.style.display='none';fill.style.width='0%';},1200);
-  return all;
-}
+    /* ── Preview size selector ── */
+    function setPreview(n) {
+      previewSize = n;
+      document.querySelectorAll('.size-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.textContent) === n);
+      });
+      // Re-fetch to load that many records
+      doFetch();
+    }
 
-/* ── Export dispatcher — fetches all pages then downloads ── */
-async function expFull(fmt, name){
-  const m=MODS.find(x=>x.id===amod);
-  if(!m)return;
+    /* ── Paginated full fetch for exports ──────────────────────────
+       Pages through all records via the proxy. Stops when a page
+       returns fewer than PAGE_SIZE records or returns empty/error.
+    ────────────────────────────────────────────────────────────── */
+    async function fetchAllPages(m) {
+      const PAGE_SIZE = 100;
+      let page = 0, all = [];
+      const prog = document.getElementById('prog');
+      const lbl = document.getElementById('prog-label');
+      const fill = document.getElementById('prog-fill');
+      prog.style.display = 'block';
+      lbl.style.display = 'block';
+      fill.style.width = '3%';
 
-  // Disable all export buttons during fetch
-  document.querySelectorAll('#ebs .eb').forEach(b=>{ b.disabled=true; b.style.opacity='.5'; });
-  setBanners([{type:'i',msg:`Fetching all records from /api${m.ep}…`}]);
+      // Resolve endpoint and base params for this module
+      const resolvedEp = (m.buildEp ? m.buildEp(activeParams) : m.ep).replace(/^\//, '');
+      let extraParams = {};
 
-  const allRecords=await fetchAllPages(m);
+      if (typeof m.params === 'function') {
+        extraParams = m.params(activeParams);
+      } else if (m.params) {
+        extraParams = m.params;
+      } else if (m.staticParams) {
+        extraParams = m.staticParams;
+      }
+      while (true) {
+        lbl.textContent = `Fetching page ${page + 1}… (${all.length} records so far)`;
+        let records = [];
+        try {
+          const params = { ...extraParams, page, rows: PAGE_SIZE };
+          const raw = await zuperFetch(resolvedEp, params);
+          records = extractArr(raw);
+        } catch (e) {
+          const msg = e.message || '';
+          if (msg.includes('Zuper 4') || msg.includes('Zuper 5') || msg.includes('500') || msg.includes('400')) { break; }
+          console.warn('Pagination stopped at page', page, msg);
+          break;
+        }
+        if (!records.length) break;
+        all = all.concat(records);
+        const pct = Math.min(92, 3 + Math.log2(page + 2) * 20);
+        fill.style.width = pct + '%';
+        if (records.length < PAGE_SIZE) break;
+        page++;
+        await new Promise(r => setTimeout(r, 150));
+      }
 
-  document.querySelectorAll('#ebs .eb').forEach(b=>{ b.disabled=false; b.style.opacity=''; });
+      fill.style.width = '100%';
+      lbl.textContent = `Done — ${all.length} total records`;
+      setTimeout(() => { prog.style.display = 'none'; lbl.style.display = 'none'; fill.style.width = '0%'; }, 1200);
+      return all;
+    }
 
-  if(!allRecords.length){
-    setBanners([{type:'w',msg:'No records returned — nothing to export.'}]);
-    return;
-  }
+    /* ── Export dispatcher — fetches all pages then downloads ── */
+    async function expFull(fmt, name) {
+      const m = MODS.find(x => x.id === amod);
+      if (!m) return;
 
-  // Flatten all records using the same columns detected from preview
-  const allFlat=allRecords.map(r=>flatten(r));
+      // Disable all export buttons during fetch
+      document.querySelectorAll('#ebs .eb').forEach(b => { b.disabled = true; b.style.opacity = '.5'; });
+      setBanners([{ type: 'i', msg: `Fetching all records from /api${m.ep}…` }]);
 
-  // Union of all keys (may be superset of preview cols)
-  const keySet=new Set();
-  allFlat.forEach(r=>Object.keys(r).forEach(k=>keySet.add(k)));
-  const allKeys=[...keySet].sort((a,b)=>{
-    const prio=m.priority||[];
-    const ai=prio.findIndex(p=>a===p||a.startsWith(p+'.'));
-    const bi=prio.findIndex(p=>b===p||b.startsWith(p+'.'));
-    if(ai>=0&&bi>=0)return ai-bi; if(ai>=0)return-1; if(bi>=0)return 1;
-    return a.localeCompare(b);
-  });
+      const allRecords = await fetchAllPages(m);
 
-  const useAllCols=(fmt==='csv_all');
-  const cols=useAllCols?allKeys:(visCols.length?visCols:allKeys);
-  const headers=cols.map(k=>fmtKey(k));
-  const rows=allFlat.map(r=>cols.map(k=>r[k]??''));
+      document.querySelectorAll('#ebs .eb').forEach(b => { b.disabled = false; b.style.opacity = ''; });
 
-  setBanners([{type:'s',msg:`${allRecords.length} records exported (${fmt==='csv_all'?'all fields':'selected columns'}).`}]);
+      if (!allRecords.length) {
+        setBanners([{ type: 'w', msg: 'No records returned — nothing to export.' }]);
+        return;
+      }
 
-  if(fmt==='csv'||fmt==='csv_all'){
-    dl('zuper_'+slug(name)+'_export.csv','text/csv',
-      [headers,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n'));
-  }else if(fmt==='xlsx'){
-    if(typeof XLSX==='undefined'){alert('Excel library loading, retry in a moment.');return;}
-    const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31));
-    XLSX.writeFile(wb,'zuper_'+slug(name)+'_export.xlsx');
-  }else if(fmt==='json'){
-    dl('zuper_'+slug(name)+'_export.json','application/json',
-      JSON.stringify(rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]]))),null,2));
-  }
-}
+      // Flatten all records using the same columns detected from preview
+      const allFlat = allRecords.map(r => flatten(r));
 
-/* ── Copy (preview rows, no pagination needed) ── */
-function expCopy(){
-  const cols=visCols.length?visCols:allCols;
-  const h=cols.map(k=>fmtKey(k));
-  const rows=flatData.map(r=>cols.map(k=>r[k]??''));
-  const txt=[h,...rows].map(r=>r.join('\t')).join('\n');
-  navigator.clipboard?.writeText(txt).then(()=>{
-    const b=document.getElementById('cpb');if(!b)return;
-    const o=b.innerHTML;
-    b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>Copied!';
-    setTimeout(()=>{if(b)b.innerHTML=o;},2000);
-  });
-}
+      // Union of all keys (may be superset of preview cols)
+      const keySet = new Set();
+      allFlat.forEach(r => Object.keys(r).forEach(k => keySet.add(k)));
+      const allKeys = [...keySet].sort((a, b) => {
+        const prio = m.priority || [];
+        const ai = prio.findIndex(p => a === p || a.startsWith(p + '.'));
+        const bi = prio.findIndex(p => b === p || b.startsWith(p + '.'));
+        if (ai >= 0 && bi >= 0) return ai - bi; if (ai >= 0) return -1; if (bi >= 0) return 1;
+        return a.localeCompare(b);
+      });
 
-function dl(fn,type,c){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type}));a.download=fn;a.click();}
-function slug(s){return s.replace(/\s+/g,'_').replace(/[^a-z0-9_]/gi,'').toLowerCase();}
+      const useAllCols = (fmt === 'csv_all');
+      const cols = useAllCols ? allKeys : (visCols.length ? visCols : allKeys);
+      const headers = cols.map(k => fmtKey(k));
+      const rows = allFlat.map(r => cols.map(k => r[k] ?? ''));
 
-renderMods();
-</script>
+      setBanners([{ type: 's', msg: `${allRecords.length} records exported (${fmt === 'csv_all' ? 'all fields' : 'selected columns'}).` }]);
+
+      if (fmt === 'csv' || fmt === 'csv_all') {
+        dl('zuper_' + slug(name) + '_export.csv', 'text/csv',
+          [headers, ...rows].map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n'));
+      } else if (fmt === 'xlsx') {
+        if (typeof XLSX === 'undefined') { alert('Excel library loading, retry in a moment.'); return; }
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, name.slice(0, 31));
+        XLSX.writeFile(wb, 'zuper_' + slug(name) + '_export.xlsx');
+      } else if (fmt === 'json') {
+        dl('zuper_' + slug(name) + '_export.json', 'application/json',
+          JSON.stringify(rows.map(r => Object.fromEntries(headers.map((h, i) => [h, r[i]]))), null, 2));
+      }
+    }
+
+    /* ── Copy (preview rows, no pagination needed) ── */
+    function expCopy() {
+      const cols = visCols.length ? visCols : allCols;
+      const h = cols.map(k => fmtKey(k));
+      const rows = flatData.map(r => cols.map(k => r[k] ?? ''));
+      const txt = [h, ...rows].map(r => r.join('\t')).join('\n');
+      navigator.clipboard?.writeText(txt).then(() => {
+        const b = document.getElementById('cpb'); if (!b) return;
+        const o = b.innerHTML;
+        b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>Copied!';
+        setTimeout(() => { if (b) b.innerHTML = o; }, 2000);
+      });
+    }
+
+    function dl(fn, type, c) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([c], { type })); a.download = fn; a.click(); }
+    function slug(s) { return s.replace(/\s+/g, '_').replace(/[^a-z0-9_]/gi, '').toLowerCase(); }
+
+    renderMods();
+  </script>
 </body>
+
 </html>
